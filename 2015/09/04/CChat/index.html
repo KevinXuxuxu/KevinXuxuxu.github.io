@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="Kevin Xu"><title>CChat · Kevin Xu</title><meta name="description" content="A command line tool for chatting.
+Basic P2P &amp;amp; multi chatting is finished. More functions are to be added including
+better UI (considering curses)
+"><meta name="keywords"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="short icon" href="/images/favicon.png" type="image/x-icon"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"></head><body><div class="sidebar animated fadeInDown"><div class="logo-title"><div class="title"><img src="/images/logo@2x.png" style="width:127px;"><h3 title=""><a href="/">Kevin Xu</a></h3></div></div><ul class="social-links"></ul><div class="footer"><a target="_blank" href="/"><span>Theme by </span></a><a href="https://www.caicai.me"> CaiCai </a><span>&</span><a href="https://github.com/Ben02/hexo-theme-Anatole"> Ben</a><div class="by_farbox"><a href="https://hexo.io/zh-cn/" target="_blank">Proudly published with Hexo&#65281;</a></div></div></div><div class="main"><div class="page-top animated fadeInDown"><div class="nav"><li><a href="/">首页</a></li><li><a href="/about">关于</a></li><li><a href="/archives">归档</a></li><li><a href="/links">友链</a></li></div><div class="information"><div class="back_btn"><li><a onclick="window.history.go(-1)" class="fa fa-chevron-left"> </a></li></div><div class="avatar"><img src="/uploads/avatar.png"></div></div></div><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>CChat</a></h3></div><div class="post-content"><ul>
+<li>A command line tool for chatting.</li>
+<li>Basic P2P &amp; multi chatting is finished. More functions are to be added including<ul>
+<li>better UI (considering <code>curses</code>)</li>
+<li>chatting record export</li>
+</ul>
+</li>
+</ul>
+<h3 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h3><h4 id="Basic-commands"><a href="#Basic-commands" class="headerlink" title="Basic commands:"></a>Basic commands:</h4><ul>
+<li><code>name</code>: set current name to be displayed over conversation. (default <code>Host</code>)</li>
+<li><code>port</code>: set current port for establishing host (default <code>9527</code>)</li>
+<li><code>host</code>: host a conversation<ol>
+<li><code>waiting for connection</code></li>
+</ol>
+<ul>
+<li>if anyone connects: <code>[127.0.0.1:54516] trying to connect</code></li>
+<li>enter <code>confirm</code> and start conversation</li>
+</ul>
+</li>
+<li><code>connect</code>: connect to a given host<ol>
+<li><code>where?</code> enter ip and port <code>localhost:9527</code></li>
+<li><code>waiting for acceptance</code></li>
+<li><code>confirmed</code> and start conversation</li>
+</ol>
+</li>
+</ul>
+<h4 id="multi-chatter"><a href="#multi-chatter" class="headerlink" title="multi-chatter:"></a>multi-chatter:</h4><p>(<code>main.cpp</code> in multi-chatter branch)</p>
+<ul>
+<li><code>name</code>, <code>port</code> …</li>
+<li><code>info</code>: print current global variables e.g <code>name</code> and <code>port</code></li>
+<li><code>host</code>: start a chat room. Entrance does not require approval.<ul>
+<li><code>Bob from [127.0.0.1:54516] joined.</code></li>
+</ul>
+</li>
+<li><code>connect</code>: connect to a given host<ol>
+<li><code>where?</code> enter ip and port</li>
+<li><code>waiting for response...</code></li>
+<li>if succeed, <code>joined</code> and start conversation.</li>
+</ol>
+</li>
+</ul>
+</div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2015-09-04</span><i class="fa fa-tag"></i><a href="/categories/tech/" title="tech" class="tag">tech </a></div></div></div></div><div class="share"><div class="evernote"><a href="javascript:(function(){EN_CLIP_HOST='http://www.evernote.com';try{var%20x=document.createElement('SCRIPT');x.type='text/javascript';x.src=EN_CLIP_HOST+'/public/bookmarkClipper.js?'+(new%20Date().getTime()/100000);document.getElementsByTagName('head')[0].appendChild(x);}catch(e){location.href=EN_CLIP_HOST+'/clip.action?url='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title);}})();" ref="nofollow" target="_blank" class="fa fa-bookmark"></a></div><div class="weibo"><a href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));" class="fa fa-weibo"></a></div><div class="twitter"><a href="http://twitter.com/home?status=,http://yoursite.com/2015/09/04/CChat/,Kevin Xu,CChat,;" class="fa fa-twitter"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a role="navigation" href="/2015/09/14/AWS-Shadowsocks翻墙DIY/" title="AWS + Shadowsocks翻墙DIY" class="btn">上一篇</a></li></ul></div></div></div></div></div><script src="/js/jquery.js"></script><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script></body></html>

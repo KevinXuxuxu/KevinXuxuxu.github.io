@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="Kevin Xu"><title>Parrot · Kevin Xu</title><meta name="description" content="gcc-4.5 is needed.
+
+gmp-5.1.3
+
+need sth. called m41sudo apt-get install m4
+
+
+
+mpfr-3.1.4
+
+mpc-1.0.2
+above packages must be installed in exact version "><meta name="keywords"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="short icon" href="/images/favicon.png" type="image/x-icon"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"></head><body><div class="sidebar animated fadeInDown"><div class="logo-title"><div class="title"><img src="/images/logo@2x.png" style="width:127px;"><h3 title=""><a href="/">Kevin Xu</a></h3></div></div><ul class="social-links"></ul><div class="footer"><a target="_blank" href="/"><span>Theme by </span></a><a href="https://www.caicai.me"> CaiCai </a><span>&</span><a href="https://github.com/Ben02/hexo-theme-Anatole"> Ben</a><div class="by_farbox"><a href="https://hexo.io/zh-cn/" target="_blank">Proudly published with Hexo&#65281;</a></div></div></div><div class="main"><div class="page-top animated fadeInDown"><div class="nav"><li><a href="/">首页</a></li><li><a href="/about">关于</a></li><li><a href="/archives">归档</a></li><li><a href="/links">友链</a></li></div><div class="information"><div class="back_btn"><li><a onclick="window.history.go(-1)" class="fa fa-chevron-left"> </a></li></div><div class="avatar"><img src="/uploads/avatar.png"></div></div></div><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>Parrot</a></h3></div><div class="post-content"><ul>
+<li><p>gcc-4.5 is needed.</p>
+<ul>
+<li><p>gmp-5.1.3</p>
+<ul>
+<li>need sth. called <code>m4</code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install m4</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>mpfr-3.1.4</p>
+</li>
+<li>mpc-1.0.2</li>
+<li>above packages must be installed in exact version and order</li>
+</ul>
+</li>
+<li>configure and build gcc in the target folder</li>
+<li><p>possible problems</p>
+<ul>
+<li><p>cannot find <code>crti.o</code>: No such file or directory</p>
+<ul>
+<li>create symbolic link between libs<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cd /usr/lib</div><div class="line">ln -s x86_64-linux-gnu/crt*.o .</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>configure: error: cannot find neither zip nor jar, cannot continue</p>
+<ul>
+<li>just get zip-3.0<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install zip</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>i386:x86-64 architecture of input file <code>/usr/lib/../lib/crtn.o</code> is incompatible with i386 output</p>
+<ul>
+<li><p>change default setting of gcc in file: <code>gcc/config/i386/t-linux64</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"># On x86-64 we do not need any exports for glibc for 64-bit libgcc_s,</div><div class="line"># override the settings</div><div class="line"># from t-slibgcc-elf-ver and t-linux</div><div class="line">SHLIB_MAPFILES = $(srcdir)/libgcc-std.ver \</div><div class="line">  $(srcdir)/config/i386/libgcc-x86_64-glibc.ver</div><div class="line"></div><div class="line">MULTILIB_OPTIONS = m64/m32</div><div class="line">MULTILIB_DIRNAMES = 64 32</div><div class="line">MULTILIB_OSDIRNAMES = ../lib64 ../lib</div></pre></td></tr></table></figure>
+</li>
+<li><p>So changing the last row to be:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">MULTILIB_OSDIRNAMES = ../lib ../lib32</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>make: asm/errno.h: No such file or directory</p>
+<ul>
+<li>missing package<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install linux-libc-dev</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Installing built gcc-4.5.4</p>
+<ul>
+<li>remove the old version of gcc and install the new<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">sudo apt-get remove gcc</div><div class="line">cd gcc-obj</div><div class="line">make install</div></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>Installing other packages</p>
+<ul>
+<li><p>deprecating packages</p>
+<ul>
+<li>package libtiff4-dev is deprecated in</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install dejagnu flex bison axel libboost-dev libtiff4-dev</div></pre></td></tr></table></figure>
+<p>used <code>libtiff5-dev</code> instead.</p>
+</li>
+</ul>
+</li>
+<li><p>Even though I succussfully installed gcc-4.5, there’s still no way for me to build <code>llvm</code> correctly. The error message even exceeded the limit of number of lines in ubuntu terminal. I’m now fully aware that I might not be able to config the environment correctly. I’m just done with it.</p>
+</li>
+</ul>
+</div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2016-04-01</span><i class="fa fa-tag"></i><a href="/categories/tech/" title="tech" class="tag">tech </a></div></div></div></div><div class="share"><div class="evernote"><a href="javascript:(function(){EN_CLIP_HOST='http://www.evernote.com';try{var%20x=document.createElement('SCRIPT');x.type='text/javascript';x.src=EN_CLIP_HOST+'/public/bookmarkClipper.js?'+(new%20Date().getTime()/100000);document.getElementsByTagName('head')[0].appendChild(x);}catch(e){location.href=EN_CLIP_HOST+'/clip.action?url='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title);}})();" ref="nofollow" target="_blank" class="fa fa-bookmark"></a></div><div class="weibo"><a href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));" class="fa fa-weibo"></a></div><div class="twitter"><a href="http://twitter.com/home?status=,http://yoursite.com/2016/04/01/Parrot/,Kevin Xu,Parrot,;" class="fa fa-twitter"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a role="navigation" href="/2016/04/12/撒西不理/" title="撒西不理" class="btn">上一篇</a></li><li class="next pagbuttons"><a role="navigation" href="/2016/02/23/名言警句/" title="名言警句" class="btn">下一篇</a></li></ul></div></div></div></div></div><script src="/js/jquery.js"></script><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script></body></html>
