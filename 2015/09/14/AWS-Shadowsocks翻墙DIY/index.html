@@ -9,7 +9,7 @@
 <li><p>第二天再回来，点击 EC2 可以进入 EC2控制面板。然后点击“启动实例”</p>
 <ul>
 <li>选择 Amazon 系统映像（AMI）：我们就用一个 <code>Ubuntu Server 14.04 LTS (HVM)</code> 就好了。</li>
-<li>实例类型：如果是自己用的话，选择 <code>t2.micro</code> 就够用了（应该）</li>
+<li>实例类型：如果是自己用的话，选择 <code>t2.nano</code> 就够用了。不过如果是刚刚注册的账号可以用 <code>t2.micro</code>，可以免费用一年。</li>
 <li><p>核查实例并启动：直接点击启动，随后会弹出要选择密钥对的框，点击创建新的密钥对，名字随便起（比如 <code>foo</code>），然后下载密钥对，会得到名为 <code>foo.pem</code> 的文件，这时进入命令行，修改权限：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo chmod 400 foo.pem</div></pre></td></tr></table></figure>
 <p>然后就可以启动实例啦。</p>
@@ -57,7 +57,11 @@
 </ul>
 </li>
 <li><p>事实上 <code>ssserver</code> 自己也支持后台启动。只要在自后添加上 <code>-d start</code> 的参数，就可以在后台启动相同的服务器程序。运行的 log 被储存在 <code>/var/log/shadowsocks.log</code> 中，可用如下命令随时查看。</p>
-  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">tail -f /var/<span class="built_in">log</span>/shadowsocks.log</div></pre></td></tr></table></figure>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ tail -f /var/<span class="built_in">log</span>/shadowsocks.log</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>ssserver</code> 也可以用配置文件来启动，这样可以保证 server 和 client 的配置统一：</p>
+  <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ sudo ssserver -c shadowsocks-libev.json</div></pre></td></tr></table></figure>
+<p>  注意其中的 <code>server</code> 配置最好填写 <code>0.0.0.0</code>.</p>
 </li>
 </ul>
 <h4 id="Mac-上的-Shadowsocks-客户端（命令行工具）"><a href="#Mac-上的-Shadowsocks-客户端（命令行工具）" class="headerlink" title="Mac 上的 Shadowsocks 客户端（命令行工具）"></a>Mac 上的 Shadowsocks 客户端（命令行工具）</h4><ul>
@@ -88,10 +92,17 @@
 </li>
 <li>打开浏览器，在地址栏中输入 <code>youtube.com</code>，在搜索框中输入 “怒斥” 并搜索。</li>
 </ul>
-<h4 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h4><ul>
-<li>最近 Amazon Payment 竟然给我发了邮件让我给它传真一些资料，要不然要停我的号。</li>
-<li>哼，NAIVE。</li>
-<li>老子连传真都没有。</li>
+<h4 id="Trouble-Shooting"><a href="#Trouble-Shooting" class="headerlink" title="Trouble Shooting"></a>Trouble Shooting</h4><ul>
+<li><p>在安装和启动 <code>ssserver</code> 的时候，可能会出现这样的问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">AttributeError: /usr/lib/x86_64-Linux-gnu/libcrypto.so.1.1: undefined symbol: EVP_CIPHER_CTX_cleanup</div></pre></td></tr></table></figure>
+<ul>
+<li><p>这个问题是由于在openssl1.1.0版本中，废弃了EVP_CIPHER_CTX_cleanup函数。我们可以用以下命令找到 <code>openssl.py</code> 的源文件，然后将其中的 <code>EVP_CIPHER_CTX_cleanup</code> 修改为新的命名 <code>EVP_CIPHER_CTX_reset</code> 即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ find / -name openssl.py</div></pre></td></tr></table></figure>
+</li>
+<li><p><a href="https://blog.csdn.net/blackfrog_unique/article/details/60320737" target="_blank" rel="external">Reference</a></p>
+</li>
+</ul>
+</li>
 </ul>
 </div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2015-09-14</span><i class="fa fa-comment-o"></i><a href="/2015/09/14/AWS-Shadowsocks翻墙DIY/#comments">评论</a><i class="fa fa-tag"></i><a href="/categories/tech/" title="tech" class="tag">tech </a><a href="/tags/index/" title="index" class="tag">index </a><a href="/tags/AWS/" title="AWS" class="tag">AWS </a><a href="/tags/proxy/" title="proxy" class="tag">proxy </a><a href="/tags/tutorial/" title="tutorial" class="tag">tutorial </a></div></div></div></div><div class="share"><div class="evernote"><a href="javascript:(function(){EN_CLIP_HOST='http://www.evernote.com';try{var%20x=document.createElement('SCRIPT');x.type='text/javascript';x.src=EN_CLIP_HOST+'/public/bookmarkClipper.js?'+(new%20Date().getTime()/100000);document.getElementsByTagName('head')[0].appendChild(x);}catch(e){location.href=EN_CLIP_HOST+'/clip.action?url='+encodeURIComponent(location.href)+'&amp;title='+encodeURIComponent(document.title);}})();" ref="nofollow" target="_blank" class="fa fa-bookmark"></a></div><div class="weibo"><a href="javascript:void((function(s,d,e){try{}catch(e){}var f='http://service.weibo.com/share/share.php?',u=d.location.href,p=['url=',e(u),'&amp;title=',e(d.title),'&amp;appkey=2924220432'].join('');function a(){if(!window.open([f,p].join(''),'mb',['toolbar=0,status=0,resizable=1,width=620,height=450,left=',(s.width-620)/2,',top=',(s.height-450)/2].join('')))u.href=[f,p].join('');};if(/Firefox/.test(navigator.userAgent)){setTimeout(a,0)}else{a()}})(screen,document,encodeURIComponent));" class="fa fa-weibo"></a></div><div class="twitter"><a href="http://twitter.com/home?status=,http://KevinXuxuxu.github.io/2015/09/14/AWS-Shadowsocks翻墙DIY/,Kevin Xu,AWS + Shadowsocks翻墙DIY,;" class="fa fa-twitter"></a></div></div><div class="pagination"><ul class="clearfix"><li class="pre pagbuttons"><a role="navigation" href="/2016/02/08/过年好/" title="过年好" class="btn">上一篇</a></li><li class="next pagbuttons"><a role="navigation" href="/2015/09/04/CChat/" title="CChat" class="btn">下一篇</a></li></ul></div><a id="comments"></a><div id="disqus_thread"></div><script>var disqus_shortname = 'kevinxu-1';
 var disqus_identifier = '2015/09/14/AWS-Shadowsocks翻墙DIY/';
