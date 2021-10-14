@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+        <link rel="stylesheet" href="/static/pygments_style.css">
+        <!-- <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css"> -->
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+                    <a href="/">back</a>
+                
+                <h1 class="heading-index">A Peek into System Security</h1>
+
+                <p class="text-gray"><small>
+                    2021-09-22 22:27:45
+                </small></p>
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+                    <p>This morning I got reached out by 2 tech companies: <a href="https://www.gitguardian.com/">GitGuardian</a> and Slack, about a same issue related to the repository I just created: <a href="https://github.com/KevinXuxuxu/prometheus-ecs">prometheus-ecs</a>, which is a flattering experience. Unfortunately it's not that my repo is so good that they want to initiate business collaboration or anything, it's just that they found out one of my Slack webhook url is exposed in my (apparently public) repository, and were kind enough to warn me of it. Slack even went as far as directly revoking the exposed URL and issuing a new one.</p>
+<p>I know it sounds like a stupid mistake that any engineer with some minimum industry experience and proper practice training shouldn't make. But here's some context: Recently I have been working on a side project about system monitoring and alerting. As I build, setup and operate a bunch of web services (for myself and my gf), I would like to be aware of their availability, even being alerted when things go down. As a natural result, I choose to use the famous open source project <a href="https://prometheus.io">Prometheus</a>, and would like to explore <a href="https://aws.amazon.com/cn/ecs/">AWS Elastic Container Service</a> for deployment (if which works out, will be a cheaper choice for hosting any of my service).</p>
+<p>After some intense (and a little frustrating) learning, I figured out that I need 3 components to achieve what I wanted:</p>
+<ul>
+<li>Prometheus main service (of course)</li>
+<li>Blackbox exporter (for blackbox monitoring, as I'm tight on resources and don't want to run any side car services or do any extensive coding on my existing services)</li>
+<li>Alert manager (for sending out alert via email or Slack)</li>
+</ul>
+<p>Luckily folks from Prometheus have everything covered by supporting each of them as a docker image for swift deployment. Just mount some custom config and run them on ECS should do the work, peice of cake. That's what I thought before I realised that ECS doesn't actually support any volume mount. Yes, there's no way for you to dynamically pass files into containers with ECS, you'll have to build the file into the docker image. I think this is how AWS is enforcing the security <a href="https://digitalguardian.com/blog/what-principle-least-privilege-polp-best-practice-information-security-and-compliance">Principal of Least Privilege</a>, since you can always build every file/logic you need into the image.</p>
+<p>So I started writing Dockerfiles, which should be as easy as <code>FROM prom/prometheus</code> plus <code>COPY prometheus.yml /etc/prometheus</code>, where it overwrites the config file with my custom one (and same for the alert manager, and blackbox exporter is stateless). Since I already have custom config and Dockerfiles, I might as well create a Github repo for it.</p>
+<p>The problem was with the config for the alert manager (I skipped the failure of trying to make Gmail SMTP server work, so anyways I ended up with slack for notification). For some <a href="https://github.com/prometheus/alertmanager/issues/2207">not-so-obvious reason</a>, Prometheus decides not to support templating for <code>slack_api_url</code>, aka. it will not automatically render env variables into config file (which is actually <a href="https://12factor.net/config">a standard practice</a> for micro services to get config or credentials). After a long day of struggling with all the tech details, I took the liberty to hard-code my Slack webhook url into the config file, and got busted by 2 companies (I'm suspecting that Slack actually hired GitGuardian but whatever).</p>
+<p>To my defense, I do know the correct way to solve this thing, which is to write a custom templating logic into dockerfile (which is a good opportunity to pick up some shell magic):</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>ENTRYPOINT <span class="se">\</span>
+    sed -i <span class="s2">&quot;s=WEBHOOK_URL=</span><span class="si">${</span><span class="nv">WEBHOOK_URL</span><span class="si">}</span><span class="s2">=g&quot;</span> <span class="se">\</span>
+        /etc/alertmanager/alertmanager.yml <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    /bin/alertmanager --config.file<span class="o">=</span>/etc/alertmanager/alertmanager.yml <span class="se">\</span>
+        --storage.path<span class="o">=</span>/alertmanager
+</code></pre>
+</div><p>I think the takeaway here is that don't ever be lazy over security issues, or it's definitely going to be discovered. I'm just lucky to be discovered by some good(?) folks.</p>
+
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
