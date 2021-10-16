@@ -15,19 +15,20 @@
                     </ul>
                 </nav>
                 
-                    <a href="/">back</a>
-                
-                <h1 class="heading-index">A Peek into System Security</h1>
+    <a href="/">back</a>
+    <h1 class="heading-index">A Peek into System Security</h1>
 
-                <p class="text-gray"><small>
-                    2021-09-22 22:27:45
-                </small></p>
+    <p class="text-gray"><small>
+        2021-09-22 22:27:45
+    </small></p>
+
             </header>
                 
             <main class="content columns">
                 <div class="column col-sm-12 col-md-10 col-8">
                     
-                    <p>This morning I got reached out by 2 tech companies: <a href="https://www.gitguardian.com/">GitGuardian</a> and Slack, about a same issue related to the repository I just created: <a href="https://github.com/KevinXuxuxu/prometheus-ecs">prometheus-ecs</a>, which is a flattering experience. Unfortunately it's not that my repo is so good that they want to initiate business collaboration or anything, it's just that they found out one of my Slack webhook url is exposed in my (apparently public) repository, and were kind enough to warn me of it. Slack even went as far as directly revoking the exposed URL and issuing a new one.</p>
+    
+    <p>This morning I got reached out by 2 tech companies: <a href="https://www.gitguardian.com/">GitGuardian</a> and Slack, about a same issue related to the repository I just created: <a href="https://github.com/KevinXuxuxu/prometheus-ecs">prometheus-ecs</a>, which is a flattering experience. Unfortunately it's not that my repo is so good that they want to initiate business collaboration or anything, it's just that they found out one of my Slack webhook url is exposed in my (apparently public) repository, and were kind enough to warn me of it. Slack even went as far as directly revoking the exposed URL and issuing a new one.</p>
 <p>I know it sounds like a stupid mistake that any engineer with some minimum industry experience and proper practice training shouldn't make. But here's some context: Recently I have been working on a side project about system monitoring and alerting. As I build, setup and operate a bunch of web services (for myself and my gf), I would like to be aware of their availability, even being alerted when things go down. As a natural result, I choose to use the famous open source project <a href="https://prometheus.io">Prometheus</a>, and would like to explore <a href="https://aws.amazon.com/cn/ecs/">AWS Elastic Container Service</a> for deployment (<del>if which works out, will be a cheaper choice for hosting any of my service</del> <em>I was wrong</em>).</p>
 <p>After some intense (and a little frustrating) learning, I figured out that I need 3 components to achieve what I wanted:</p>
 <ul>
@@ -48,17 +49,16 @@
 </code></pre>
 </div><p>I think the takeaway here is that don't ever be lazy over security issues, or it's definitely going to be discovered. I'm just lucky to be discovered by some good(?) folks.</p>
 
-                    
+    
 
-                    
-                        <script src="https://utteranc.es/client.js"
-                                repo="KevinXuxuxu/KevinXuxuxu.github.io"
-                                issue-term="pathname"
-                                theme="github-light"
-                                crossorigin="anonymous"
-                                async>
-                        </script>
-                    
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
                 </div>
             </main>
         </div>
