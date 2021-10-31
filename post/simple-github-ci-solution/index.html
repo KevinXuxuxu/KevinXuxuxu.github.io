@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/spectre.min.css">
+        <link rel="stylesheet" href="/static/pygments_style.css">
+        
+        
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">back</a>
+    <h1 class="heading-index">Simple Github CI Solution</h1>
+
+    <p class="text-gray">
+        <small>2021-10-31 22:12:12</small>
+        <a href="/category/tech/"><small><code>tech</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>For the past few weeks I've been working on enabling CI for my little side project (<a href="https://github.com/KevinXuxuxu/NN">NN</a>). I forced myself to add some unit tests as well as e2e (?) tests while I was developing it, and it would be nice to be able to automatically run them thoughout the dev-integration process. This solution needs to satisfy a few requirements:</p>
+<ul>
+<li>Automatically run all tests when new change is pushed to Github<ul>
+<li>On the main branch so that we know it's not broken</li>
+<li>On every comment on every PR</li>
+</ul>
+</li>
+<li>Blocks PR merge when test fails (obviously)</li>
+<li>Easy to build (relatively), since the side project itself is not big and I have limited spare time.</li>
+<li>Doesn't cost too much (relatively), ditto</li>
+</ul>
+<p>The general idea of the solution should be pretty straightforward: when a Github event that we care about (e.g. push to a PR) happens, Github sends request that triggers our CI server to do some jobs (e.g. unit testing), and returns the job result to Github.</p>
+<p>Of course we're familiar with the traditional OSS solution that's widely adopted by startups (for budgets reasons), where a job scheduling service, usually <a href="https://www.jenkins.io/">Jenkins</a> or <a href="https://argoproj.github.io/workflows">Argo Workflows</a> if you're a k8s guy, serves as the CI server which will handle the job requests on your computing resources. They all have good support for communicating with Github, and seems to be mature solutions.</p>
+<p>Unfortunately my spare time and energy are limited and more importantly easily distracted. Github has quite some docs regarding its CI support, but there's just so many concepts (Actions, Runners, Webhooks, Workflow, Checks, etc.) and they lack a straightforward introduction or summary on how these concepts should work together. After spending a whole Saturday two weeks ago without any meaningful progress (somehow I got stuck with generating valid <a href="https://jwt.io/">JWT</a> for Github authentication, and fucked up my Python environment with <code>cryptography</code> package, and that was my last straw), I gave up on playing with Github APIs.</p>
+<p>Then it comes this Wednesday, when I was reading <a href="https://blog.alexellis.io/raspberry-pi-zero-2/">an article about what you could do with the new Raspberry Pi Zero 2 W</a>, and the author mentioned something called <a href="https://docs.github.com/en/actions/hosting-your-own-runners/about-self-hosted-runners">self-hosted actions runner</a>, which I immediately realised could be the answer I was looking for. The docs about it has all the information (or at least readable), but the idea is that Github have this stand-alone light-weight open-source executable that has the following feature:</p>
+<ul>
+<li>Automatically connect with Github and register as a job runner, which is super smooth without any of the push-pull-base arguments or public interface security concerns</li>
+<li>Takes in part of a config file with e.g. shell commands as job definition, with which you can do pretty much anything with properly setup environment.<ul>
+<li>The other part of the config file is for Github to know on what condition to find a free runner and trigger the job. It even support labelling the runners based on the requirement of your job.</li>
+</ul>
+</li>
+</ul>
+<p>This literally blew my mind. Think about it: Given a bunch of these runners on k8s, you effectively have a powerful enough CI cluster that could do anything you would expect from e.g. Jenkins, and it has generic Github support and amazing scalability.</p>
+<p>So I followed the docs to start a runner on a &quot;droplet&quot; (chose DigitalOcean this time for a cheaper price) and quickly wrote a Github workflow definition (the &quot;config file&quot; I just mentioned) and got the thing running. After I finished implementing my solution, here are the only two pieces of code (or config files?) I wrote:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CI</span>
+
+<span class="c1"># Controls when the workflow will run</span>
+<span class="nt">on</span><span class="p">:</span>
+  <span class="c1"># Triggers the workflow on push or pull request events but only for the main branch</span>
+  <span class="nt">push</span><span class="p">:</span>
+    <span class="nt">branches</span><span class="p">:</span> <span class="p p-Indicator">[</span> <span class="nv">main</span> <span class="p p-Indicator">]</span>
+  <span class="nt">pull_request</span><span class="p">:</span>
+    <span class="nt">branches</span><span class="p">:</span> <span class="p p-Indicator">[</span> <span class="nv">main</span> <span class="p p-Indicator">]</span>
+
+  <span class="c1"># Allows you to run this workflow manually from the Actions tab</span>
+  <span class="nt">workflow_dispatch</span><span class="p">:</span>
+
+<span class="c1"># A workflow run is made up of one or more jobs that can run sequentially or in parallel</span>
+<span class="nt">jobs</span><span class="p">:</span>
+  <span class="c1"># This workflow contains a single job called &quot;unit-test&quot;</span>
+  <span class="nt">unit-test</span><span class="p">:</span>
+    <span class="c1"># The type of runner that the job will run on</span>
+    <span class="nt">runs-on</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">self-hosted</span>
+
+    <span class="c1"># Steps represent a sequence of tasks that will be executed as part of the job</span>
+    <span class="nt">steps</span><span class="p">:</span>
+      <span class="c1"># Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it</span>
+      <span class="p p-Indicator">-</span> <span class="nt">uses</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
+
+      <span class="c1"># Run all unit tests</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">unit test</span>
+        <span class="nt">run</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">bazel test //test:all --test_output=errors</span>
+</code></pre>
+</div><p>This is the workflow definition I had, which varies very little from the example Github gave. Note that all I did was checkout the repo on a given state, and run <code>bazel test</code> for the result, since I already built this runner into my project environment with Docker.</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>FROM fzxu/nn
+
+RUN mkdir actions-runner <span class="o">&amp;&amp;</span> <span class="nb">cd</span> actions-runner <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> curl -o actions-runner-linux-x64-2.283.3.tar.gz -L https://github.com/actions/runner/releases/download/v2.283.3/actions-runner-linux-x64-2.283.3.tar.gz <span class="se">\</span>
+  <span class="o">&amp;&amp;</span> tar xzf ./actions-runner-linux-x64-2.283.3.tar.gz
+
+ENV <span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive
+
+RUN <span class="nb">cd</span> /actions-runner <span class="o">&amp;&amp;</span> ./bin/installdependencies.sh
+
+COPY scripts/config.sh /actions-runner/config.sh
+
+COPY scripts/run.sh /actions-runner/run.sh
+
+WORKDIR /actions-runner
+
+ENTRYPOINT ./config.sh --url https://github.com/KevinXuxuxu/NN --token <span class="nv">$TOKEN</span> <span class="o">&amp;&amp;</span> ./run.sh
+</code></pre>
+</div><p>This is the Dockerfile I used to make it instantly runnable for better scaling (probably never going to need it), and it's build upon my devops environment to be able to run any build or test easily.</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
