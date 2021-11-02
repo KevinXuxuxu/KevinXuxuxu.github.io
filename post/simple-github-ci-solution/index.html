@@ -32,7 +32,7 @@
                 <div class="column col-sm-12 col-md-10 col-8">
                     
     
-    <p>For the past few weeks I've been working on enabling CI for my little side project (<a href="https://github.com/KevinXuxuxu/NN">NN</a>). I forced myself to add some unit tests as well as e2e (?) tests while I was developing it, and it would be nice to be able to automatically run them thoughout the dev-integration process. This solution needs to satisfy a few requirements:</p>
+    <p>For the past few weeks I've been working on enabling CI for one of my side project (<a href="https://github.com/KevinXuxuxu/NN">NN</a>). I forced myself to add some unit/e2e tests while I was developing it, and it would be nice to automatically run them thoughout the dev-integration process. This solution needs to meet a few requirements:</p>
 <ul>
 <li>Automatically run all tests when new change is pushed to Github<ul>
 <li>On the main branch so that we know it's not broken</li>
@@ -40,8 +40,8 @@
 </ul>
 </li>
 <li>Blocks PR merge when test fails (obviously)</li>
-<li>Easy to build (relatively), since the side project itself is not big and I have limited spare time.</li>
-<li>Doesn't cost too much (relatively), ditto</li>
+<li>Easy to build (relatively), since the side project itself is not big and I have limited spare time</li>
+<li>Doesn't cost too much money (relatively), for similar reasons</li>
 </ul>
 <p>The general idea of the solution should be pretty straightforward: when a Github event that we care about (e.g. push to a PR) happens, Github sends request that triggers our CI server to do some jobs (e.g. unit testing), and returns the job result to Github.</p>
 <p>Of course we're familiar with the traditional OSS solution that's widely adopted by startups (for budgets reasons), where a job scheduling service, usually <a href="https://www.jenkins.io/">Jenkins</a> or <a href="https://argoproj.github.io/workflows">Argo Workflows</a> if you're a k8s guy, serves as the CI server which will handle the job requests on your computing resources. They all have good support for communicating with Github, and seems to be mature solutions.</p>
