@@ -45,13 +45,13 @@
 <li>how it combines point-in-time snapshots with <a href="https://redis.com/ebook/part-2-core-concepts/chapter-4-keeping-data-safe-and-ensuring-performance/4-1-persistence-options/4-1-2-append-only-file-persistence/">AOF</a> for durable data persistance.</li>
 <li>various approach for distributed scalability (e.g. <a href="https://redis.io/docs/manual/scaling/">Redis Cluster</a>)</li>
 </ul>
-<p>But apparently <strong>none</strong> of that was covered. The project is centered around implementing a simple redis server that complies with <a href="https://redis.io/docs/reference/protocol-spec/">RESP</a> and support only a small subset of commands (<code>PING</code>, <code>ECHO</code>, <code>SET</code>, <code>GET</code>), which I'm able to finish within the free trail (Credit to my GF for pushing me to save money for my company). The real complexity of this project lies in the following points:</p>
+<p>But apparently <strong>none</strong> of that was covered. The project is centered around implementing a simple redis server that complies with <a href="https://redis.io/docs/reference/protocol-spec/">RESP</a> and support only a small subset of commands (<code>PING</code>, <code>ECHO</code>, <code>SET</code>, <code>GET</code>). The real complexity of this project lies in the following points:</p>
 <ul>
 <li>Get the TCP-based server to work properly with test client in your target language</li>
 <li>Parse the RESP string which has some recursive/nested structure</li>
 <li>Handle some concurrent operations with locks to avoid racing issues</li>
 </ul>
-<p>To be fair, these points are interesting to work on by themselves. I spent around 7 hours through 2-3 days to finish it, during which I spent most time on dealing with the RESP string in an elegant and extensible way, which made the experience more like &quot;a coding fever on <a href="https://leetcode.com/problems/parse-lisp-expression/">a hard Leetcode question</a>&quot; than &quot;Build your own Redis&quot;.</p>
+<p>To be fair, these points are interesting to work on by themselves. I spent around 7 hours through 2-3 days to finish it (Credit to my GF for pushing me to save money for my company), during which I spent most time on dealing with the RESP string in an elegant and extensible way, which made the experience more like &quot;a coding fever on <a href="https://leetcode.com/problems/parse-lisp-expression/">a hard Leetcode question</a>&quot; than &quot;Build your own Redis&quot;.</p>
 <p>So to wrap it up, some pros'n'cons for codecrafters.io:</p>
 <ul>
 <li>Cons:<ul>
