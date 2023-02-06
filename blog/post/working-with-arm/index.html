@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>Working with ARM</title>
+
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">fzxu's blog</a>
+    <h1 class="heading-index">Working with ARM</h1>
+
+    <p class="text-gray">
+        <small>2021-12-24 11:46:00</small>
+        <a href="/blog/category/tech/"><small><code>tech</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>After I got back to the States in mid November, I just couldn't wait to get myself a latest MBP, given my previous one is over 5 years old and sometimes refuses to charge. And of course, I just have to have the one with Apple M1 Pro silicon. Hence start my journey of <a href="/post/working-with-arm/">working with ARM</a> began.</p>
+<p>For those who is not familiar with computer architectures, specifically different instruction sets there is, here is a <a href="https://www.section.io/engineering-education/arm-x86/">simple explainer</a>:</p>
+<blockquote>
+<p>There are two most dominant computer architectures: x86 and arm. x86 architecture is based on CISC (Complex Instruction Set Computing), whose standard is setup by AMD in 1999. x86 architecture has a huge amount of different instructions, which as a result has longer and more complex instructions, and usually has worse power efficiency. On the contrary, arm architecture is based on RISC (Reduced Instruction Set Computing) proposed by ARM (the company). It has only around 50 instructions and usually considered more power effective and friendly for modification and customization.</p>
+</blockquote>
+<h3>Local Environment</h3>
+<p>Considering the difference of CPU architecture and the fact that I gradually made a mess with my old MBP's file system, I didn't use the (suspiciously convenient) <a href="https://support.apple.com/en-us/HT201250">Apple Time Machine</a> to directly migrate my system to the new hardware, and decided to setup from fresh.</p>
+<p>The local environment setup process was pretty smooth. I transferred my important stuff (mostly code of my side projects) through ssh; downloaded and installed softwares I needed for my daily usage; and also tried something new such as <a href="https://ohmyz.sh/">oh-my-zsh</a> for a more powerful and generic <code>zsh</code> customization (I might be the last one to realise this, but Apple somehow changed default shell of Terminal from <code>bash</code> to <code>zsh</code> from OS X one or two versions ago, which fucked up my previous customization setups a little.); as a Python programmer, I also (finally) adopted <a href="https://docs.conda.io/en/latest/">conda</a> to setup my Python environments, since they seems to finally getting their shits together. So apparently after over a year of Apple M1 silicon's debut, the software eco-system is catching up pretty well.</p>
+<h3>Devops with Docker</h3>
+<p>Here comes the harder part: most of my side projects works with a container as the devops environment, which (of course) are all built over the x86 arch (specifically x86_64, but we'll get to that later). I did try to run the docker image I built earlier, which does started with a unsettling warning:</p>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code>$ docker run -it fzxu/nn-amd64 /bin/bash
+<span class="c1"># WARNING: The requested image&#39;s platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested</span>
+root@6dec62b3afc0:/nn#
+</code></pre>
+</div><p>And it doesn't really work well after further testing. So the only logical choice left for me is to build same image (or images for the same purpose) towards different target architectures.</p>
+<h4>Problem with pip</h4>
+<p>Ideally if you basically uses dependency/package managers (e.g. apt, pip, npm) to install things in Dockerfile, you would expect to use the same Dockerfile to build images with different target archs, and hopefully the package managers will automatically deal with the archs issue for you.</p>
+<p>But I run into a strange problem when installing <code>notebook</code> with <code>pip</code>, which I'm not sure if it's specifically because of Apple silicon or it's a general arm issue:</p>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code><span class="nb">command</span> <span class="s1">&#39;aarch64-linux-gnu-gcc&#39;</span> failed with <span class="nb">exit</span> status <span class="m">1</span>
+</code></pre>
+</div><p>I struggled for a whole day on this, and eventually rewrite my Dockerfile to use <a href="https://docs.conda.io/en/latest/miniconda.html"><code>miniconda</code></a> as a replacement for <code>pip</code>. While awkward as it is, as I'm trying to reproduce this error as I'm writing this blog, this issue seems to be mitigated and I don't know what my reactions should be now.</p>
+<h4>General solution with <code>docker manifest</code></h4>
+<p>On the other hand, if your docker image depend on some particular arch sensitive binary (e.g. my <a href="https://docs.bazel.build/versions/main/install-ubuntu.html#install-on-ubuntu">bazel installation</a>), you'll need to do something clever to either render in the arch info or just use different Dockerfiles. After that, you should be able to build images for different archs <strong>under different tag</strong>.</p>
+<p>But what I wanted is to host images for different archs under the same docker image tag and be able to serve automatically according to host platform, something like <a href="https://hub.docker.com/_/ubuntu?tab=tags">this</a> (note that it has images for different archs under same tag).</p>
+<p>After some investigation, I figured that something called <a href="https://docs.docker.com/engine/reference/commandline/manifest/">manifest</a> is needed to achieve this behavior with docker registries, and it is (even) still experimental for docker clients. Tutorials on the easiest way to do it is somehow hard to dig on the web (what I found was either too <em>old</em> for a still experimental feature or doing something else), so here's how I did it for your reference:</p>
+<ol>
+<li>Build different images for different archs under different image name or tag, you should be able use docker's cross-platform build feature with <code>buildx</code></li>
+</ol>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code>docker buildx build --platform linux/amd64 -t fzxu/blog:x86 -f Dockerfile_x86 .
+docker buildx build --platform linux/arm64 -t fzxu/blog:arm -f Dockerfile_arm .
+</code></pre>
+</div><ol start="2">
+<li>Push both images onto a registry in order to generate local manifest file</li>
+</ol>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code>docker push fzxu/blog:x86
+docker push fzxu/blog:arm
+</code></pre>
+</div><ol start="3">
+<li>Use <code>docker manifest inspect</code> to check their manifests</li>
+</ol>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code>docker manifest inspect fzxu/blog:x86
+docker manifest inspect fzxu/blog:arm
+</code></pre>
+</div><ol start="4">
+<li>Use <code>docker manifest create</code> to associate the images to a single tag (empty for <code>latest</code>)</li>
+</ol>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code>docker manifest create fzxu/blog fzxu/blog:x86 fzxu/blog:arm
+</code></pre>
+</div><ol start="5">
+<li>Use <code>docker manifest push</code> to push it to registry</li>
+</ol>
+<div class="highlight">
+    <pre class="code" data-lang="bash"><span></span><code>docker manifest push fzxu/blog
+</code></pre>
+</div><p>Finally you'll get the multi-arch support under a single tag like <a href="https://hub.docker.com/r/fzxu/blog/tags">this</a>. I spent quite some time on building multi-arch support for my docker images that I'm using (github ci server, v2ray server, etc.). The reason for this effort other than my shiny new MBP is that I want to start using AWS EC2 spot t4g instances for a (much) <a href="https://aws.amazon.com/ec2/spot/pricing/">better price</a>, and t4g (<code>g</code> for <a href="https://aws.amazon.com/ec2/graviton/">Graviton</a>) is based on arm arch. I'll (probably) have another blog to talk about my cloud solution visions since it's off topic for this post, but that's it for today and thanks for reading.</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>

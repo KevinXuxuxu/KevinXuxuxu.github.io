@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>AoC 2020 (1)</title>
+
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">fzxu's blog</a>
+    <h1 class="heading-index">AoC 2020 (1)</h1>
+
+    <p class="text-gray">
+        <small>2021-01-01 16:03:02</small>
+        <a href="/blog/category/algorithm/"><small><code>algorithm</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>最近发现了一个coding比赛的网站叫 <a href="https://adventofcode.com/2020">Advent of Code</a>。网站会在每年12月1日开始每天更新一道题直到25日（圣诞节），每天的前一百名做对的用户会有得分奖励。题目的形式感觉和 <a href="https://codeforces.com/">codeforces</a> 有点类似，就是会编一个没什么卵用的故事来（企图）帮助你理解题意的那种。我现在做了一半多的题目，把解题思路和代码记录在这里，这样也不算白做（</p>
+<h4>Day 1: Report Repair <a href="https://adventofcode.com/2020/day/1">*</a></h4>
+<p>基本上是Leetcode上的 <a href="https://leetcode.com/problems/two-sum/">two sum</a> 和 followup (three sum)，双指针可以 <code>O(n)</code> 时间完成，没什么太多好说的</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_input</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)])</span>
+
+
+<span class="k">def</span> <span class="nf">solve_2_sum</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="c1"># nums is sorted ascendingly</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">nums</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">j</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">target</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">solve_3_sum</span><span class="p">(</span><span class="n">nums</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+    <span class="c1"># nums is sorted ascendingly</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">solve_2_sum</span><span class="p">(</span><span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:],</span> <span class="n">target</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span>
+</code></pre>
+</div><h4>Day 2: Password Philosophy <a href="https://adventofcode.com/2020/day/2">*</a></h4>
+<p>第一问是简单的字符统计， 第二问更水，可以用一个异或 (<code>^</code> in python) 来比较清晰的解决</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_input_line</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([0-9]+)-([0-9]+) ([a-z]): ([a-z]+)&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">solve_pwd_line</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="n">min_n</span><span class="p">,</span> <span class="n">max_n</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">parse_input_s</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">min_n</span><span class="p">,</span> <span class="n">max_n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">min_n</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_n</span><span class="p">)</span>
+    <span class="n">num_t</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="n">t</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num_t</span> <span class="o">&gt;=</span> <span class="n">min_n</span> <span class="ow">and</span> <span class="n">num_t</span> <span class="o">&lt;=</span> <span class="n">max_n</span>
+
+
+<span class="k">def</span> <span class="nf">solve_pwd_line_2</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">parse_input_s</span><span class="p">(</span><span class="n">input_s</span><span class="p">)</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span><span class="p">)</span>
+</code></pre>
+</div><h4>Day 3: Toboggan Trajectory <a href="https://adventofcode.com/2020/day/3">*</a></h4>
+<p>姑且算是一道模拟（？）第一问检查每一行第4,7,10...个的位置，第二问有可能跳行，超出行宽了就取模，总之没什么难度。</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">solve_num_trees</span><span class="p">(</span><span class="n">input_s</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="c1"># i is diff in row, j is diff in column (each time)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">input_s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">k</span><span class="p">][(</span><span class="n">k</span> <span class="o">//</span> <span class="n">i</span> <span class="o">*</span> <span class="n">j</span><span class="p">)</span> <span class="o">%</span> <span class="n">width</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">)</span>
+</code></pre>
+</div><h4>Day 4: Passport Processing <a href="https://adventofcode.com/2020/day/4">*</a></h4>
+<p>究极麻烦的字符串处理题，用正则表达式会方便很多。没什么算法。</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_pp_info</span><span class="p">(</span><span class="n">input_s</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">kv</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39; |\n&#39;</span><span class="p">,</span> <span class="n">input_s</span><span class="p">):</span>
+        <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">kv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">d</span>
+
+
+<span class="k">def</span> <span class="nf">solve_pp</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">input_s</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">parse_pp_info</span><span class="p">(</span><span class="n">input_s</span><span class="p">)</span>
+        <span class="n">missing_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_fields</span> <span class="ow">or</span> <span class="n">missing_fields</span> <span class="o">==</span> <span class="p">{</span><span class="s1">&#39;cid&#39;</span><span class="p">}:</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">count</span>
+
+
+<span class="k">def</span> <span class="nf">validate_pp</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;byr&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">1920</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;byr&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2002</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;iyr&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">2010</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;iyr&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2020</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;eyr&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">2020</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;eyr&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2030</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([0-9]+)(cm|in)&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;hgt&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="o">==</span> <span class="s1">&#39;cm&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">150</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">193</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">u</span> <span class="o">==</span> <span class="s1">&#39;in&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">59</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">76</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^#[0-9a-f]</span><span class="si">{6}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;hcl&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;ecl&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;amb&#39;</span><span class="p">,</span> <span class="s1">&#39;blu&#39;</span><span class="p">,</span> <span class="s1">&#39;brn&#39;</span><span class="p">,</span> <span class="s1">&#39;gry&#39;</span><span class="p">,</span> <span class="s1">&#39;grn&#39;</span><span class="p">,</span> <span class="s1">&#39;hzl&#39;</span><span class="p">,</span> <span class="s1">&#39;oth&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^[0-9]</span><span class="si">{9}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;pid&#39;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">solve_pp_2</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">input_s</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">validate_pp</span><span class="p">(</span><span class="n">parse_pp_info</span><span class="p">(</span><span class="n">input_s</span><span class="p">)))</span>
+</code></pre>
+</div><h4>Day 5: Binary Boarding <a href="https://adventofcode.com/2020/day/5">*</a></h4>
+<p>简单考察二进制转化的题；第二问直接把没出现的座位号都打出来就找到了，写的比较糙（</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_binary_num</span><span class="p">(</span><span class="n">input_s</span><span class="p">,</span> <span class="n">zero</span><span class="p">,</span> <span class="n">one</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">input_s</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="n">zero</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="n">one</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid character in input: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">s</span>
+
+
+<span class="k">def</span> <span class="nf">get_seat_id</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">parse_binary_num</span><span class="p">(</span><span class="n">l</span><span class="p">[:</span><span class="mi">7</span><span class="p">],</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span> <span class="o">+</span> <span class="n">parse_binary_num</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">7</span><span class="p">:],</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">solve_max_seat_id</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">get_seat_id</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">solve_my_seat_id</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">all_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1024</span><span class="p">)])</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">all_ids</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">get_seat_id</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">all_ids</span><span class="p">)</span>
+</code></pre>
+</div><h4>Day 6: Custom Customs <a href="https://adventofcode.com/2020/day/6">*</a></h4>
+<p>简单的字符串统计和集合交并的问题；话说我刚知道 <code>reduce</code> 在 Python3 里被取消了（至少是从built-in函数里移除了），因为</p>
+<blockquote>
+<p>however, 99 percent of the time an explicit for loop is more readable. (<a href="https://docs.python.org/3.0/whatsnew/3.0.html#builtins">ref</a>)</p>
+</blockquote>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">count_unique_chr</span><span class="p">(</span><span class="n">input_s</span><span class="p">):</span>
+    <span class="n">c_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">input_s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+            <span class="n">c_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_set</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">solve_custom</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">group_input</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="n">count_unique_chr</span><span class="p">(</span><span class="n">group_input</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">count</span>
+
+
+<span class="k">def</span> <span class="nf">count_intersection_within_group</span><span class="p">(</span><span class="n">input_s</span><span class="p">):</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">input_s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">inte</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">inte</span> <span class="o">=</span> <span class="n">inte</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">l</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">inte</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">solve_custom_2</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">group_input</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="n">count_intersection_within_group</span><span class="p">(</span><span class="n">group_input</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">count</span>
+</code></pre>
+</div><h4>Day 7: Handy Haversacks <a href="https://adventofcode.com/2020/day/7">*</a></h4>
+<p>（终于有一道有点意思的题了）看起来很花里胡哨，理解题意之后发现是一道搜索题，DFS/BFS应该都可以。
+先用一点 regex magic 把自然语言的输入 parse 成邻接表。
+第一问是反向的不计重复的搜索，第二问是正向的记重复的搜索。
+我用的都是BFS，因为不需要写递归，理解起来也比较直观。
+可以优化的一点是可以用一个队列数据结构，而不是用 list 来凑合，比较省空间（不过对于这种直接给 input 的题就无所谓了</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_bag_rule</span><span class="p">(</span><span class="n">input_s</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    :return outer_color: str represending the color of the outer bag</span>
+<span class="sd">    :return inner_colors: dict of color to count,</span>
+<span class="sd">        represending number of bags of each color within the outer bag</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">outer_color</span><span class="p">,</span> <span class="n">rest</span> <span class="o">=</span> <span class="n">input_s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; bags contain &#39;</span><span class="p">)</span>
+    <span class="n">inner_colors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">inner_bag_s</span> <span class="ow">in</span> <span class="n">rest</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">inner_bag_s</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;no&#39;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">num</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([0-9]+) ([a-z ]+) bags?&#39;</span><span class="p">,</span> <span class="n">inner_bag_s</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+            <span class="n">inner_colors</span><span class="p">[</span><span class="n">color</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">inner_bag_s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outer_color</span><span class="p">,</span> <span class="n">inner_colors</span>
+
+
+<span class="k">def</span> <span class="nf">bfs_bag_color</span><span class="p">(</span><span class="n">c_map</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+    <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">s</span><span class="p">])</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">c_map</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">y</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+                <span class="n">q</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">visited</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">bfs_count_bags</span><span class="p">(</span><span class="n">c_map</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">xn</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">y</span><span class="p">,</span> <span class="n">yn</span> <span class="ow">in</span> <span class="n">c_map</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="n">xn</span><span class="o">*</span><span class="n">yn</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">xn</span><span class="o">*</span><span class="n">yn</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">count</span>
+
+
+<span class="k">def</span> <span class="nf">solve_bags</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">color_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">outer_color</span><span class="p">,</span> <span class="n">inner_colors</span> <span class="o">=</span> <span class="n">parse_bag_rule</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="n">color_map</span><span class="p">[</span><span class="n">outer_color</span><span class="p">]</span> <span class="o">=</span> <span class="n">inner_colors</span>
+    <span class="n">reverse_color_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">oc</span><span class="p">,</span> <span class="n">ics</span> <span class="ow">in</span> <span class="n">color_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">ic</span> <span class="ow">in</span> <span class="n">ics</span><span class="p">:</span>
+            <span class="n">reverse_color_map</span><span class="p">[</span><span class="n">ic</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">oc</span><span class="p">)</span>
+    <span class="c1"># first part</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">bfs_bag_color</span><span class="p">(</span><span class="n">reverse_color_map</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="c1"># second part</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">bfs_count_bags</span><span class="p">(</span><span class="n">color_map</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+</code></pre>
+</div><h4>Day 8: Handheld Halting <a href="https://adventofcode.com/2020/day/8">*</a></h4>
+<p>比较常规的模拟题，第二问因为没想到有什么特别聪明的办法，所以用的是暴搜（遍历每一个可能出错的指令然后试一试）</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_boot_instructions</span><span class="p">(</span><span class="n">ss</span><span class="p">):</span>
+    <span class="n">instructions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">ss</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">instructions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cmd</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">offset</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">instructions</span>
+
+
+<span class="k">def</span> <span class="nf">solve_boot_instructions</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">instructions</span> <span class="o">=</span> <span class="n">parse_boot_instructions</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span> <span class="ow">and</span> <span class="n">p</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">p</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">instructions</span><span class="p">):</span>
+        <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">instructions</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span>
+            <span class="n">acc</span> <span class="o">+=</span> <span class="n">offset</span>
+            <span class="n">p</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;jmp&#39;</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">+=</span> <span class="n">offset</span>
+        <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;nop&#39;</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid cmd: &#39;</span> <span class="o">+</span> <span class="n">cmd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">acc</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">visited</span>
+
+
+<span class="k">def</span> <span class="nf">solve_boot_instructions_2</span><span class="p">(</span><span class="n">ss</span><span class="p">):</span>
+    <span class="n">instructions</span> <span class="o">=</span> <span class="n">parse_boot_instructions</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">visited</span> <span class="o">=</span> <span class="n">solve_boot_instructions</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+        <span class="n">alt_instructions</span> <span class="o">=</span> <span class="n">instructions</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">cmd</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">alt_instructions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;nop&#39;</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;jmp&#39;</span>
+        <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;jmp&#39;</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;nop&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">alt_instructions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+        <span class="n">acc</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">solve_boot_instructions</span><span class="p">(</span><span class="n">alt_instructions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">instructions</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">acc</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+</code></pre>
+</div><h4>Day 9: Encoding Error <a href="https://adventofcode.com/2020/day/9">*</a></h4>
+<p>第一问是在可变列表中的 two sum, 既然 check 的过程已经是 <code>O(n)</code> 的了，我们就可以在不牺牲复杂度的情况下更新元素（指插入正确位置）
+但是我好像在代码里偷懒了（用了sort（每次
+第二问是给定序列和目标，求序列中的连续子列（长度至少为2）使得子列的和为目标，可以用双指针解。</p>
+<div class="highlight">
+    <pre class="code" data-lang="python"><span></span><code><span class="k">class</span> <span class="nc">XmasChecker</span><span class="p">:</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preamble</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">preamble</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">preamble</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latest_ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+    <span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">:</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">latest_ordered</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">latest_ordered</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">i</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latest_ordered</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latest_ordered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latest_ordered</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+    <span class="k">def</span> <span class="nf">find_weakness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">solve_encoding</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="n">nums</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)]</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">XmasChecker</span><span class="p">(</span><span class="n">nums</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+    <span class="c1"># first part</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">[</span><span class="n">n</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">X</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="c1"># second part</span>
+    <span class="n">sub_list</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">find_weakness</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">sub_list</span><span class="p">)</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="n">sub_list</span><span class="p">))</span>
+</code></pre>
+</div><p>接下来我会一边做题一边更新在别的 blog 里的，分开来看着也比较方便吧（</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
