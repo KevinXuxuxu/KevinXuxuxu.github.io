@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>An Example Usage of Go Generics</title>
+
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">fzxu's blog</a>
+    <h1 class="heading-index">An Example Usage of Go Generics</h1>
+
+    <p class="text-gray">
+        <small>2023-02-27 06:18:14</small>
+        <a href="/blog/category/tech/"><small><code>tech</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>I haven't talked a lot about my new job at Google since last April, but I'm working in the performance engineering team who designs, implements and monitors performance benchmarks for a relatively new database product. Last year I took on a piece of work to start refactoring our benchmark framework to reduce the complexity of the codebase and make it easier to add or modify benchmarks. I'm sort of excited about this work as it would be my first time working on a large scope production level Go codebase. Alongside other refactoring work I did, one particular work of reducing boilerplate code utilizes <a href="https://go.dev/doc/tutorial/generics">Go generics</a>, which is a new feature of the Go language, that I find interesting enough to write about now.</p>
+<h5>The Problem</h5>
+<p>Assume you want to parse a bunch of different set of configs into Go <a href="https://github.com/protocolbuffers/protobuf">protocol buffer</a> objects from <a href="https://pkg.go.dev/google.golang.org/protobuf/encoding/prototext">prototext</a> files through <a href="https://pkg.go.dev/google.golang.org/protobuf/encoding/prototext#Unmarshal">Unmarshal function</a>. These configs are for different kind of benchmarks but share some common attributes from the top. For each proto definition of a specific kind of benchmark, there's a corresponding aggregated proto definition which is just a repeatable of the single proto, which allows loading config and running benchmarks in batch. For example:</p>
+<div class="highlight">
+    <pre class="code" data-lang="proto"><span></span><code><span class="c1">// config definition for benchmark A</span>
+<span class="kd">message</span> <span class="nc">AConfig</span> <span class="p">{</span>
+    <span class="k">optional</span> <span class="n">TestConfig</span> <span class="na">test_config</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">map</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="na">env_vars</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">map</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="na">db_vars</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AConfigs</span> <span class="p">{</span>
+    <span class="k">repeated</span> <span class="n">AConfig</span> <span class="na">config</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// config definition for benchmark B</span>
+<span class="kd">message</span> <span class="nc">BConfig</span> <span class="p">{</span>
+    <span class="k">optional</span> <span class="n">TestConfig</span> <span class="na">test_config</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">map</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="na">other_vars</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">BConfigs</span> <span class="p">{</span>
+    <span class="k">repeated</span> <span class="n">BConfig</span> <span class="na">config</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div><p>Note that for <code>A/BConfig</code>, the only guarantee is that they will have a <code>test_config</code>, which contains the common config for all benchmarks; and <code>A/BConfigs</code> is just repeated of them correspondingly.</p>
+<p>Getting back to <strong>the problem</strong>: you want to write a single set of logic that could parse all kinds of prototext into a data structure (let's call it <code>ConfigDB</code>) where you can search for a specific config based on a subset of configs contained in <code>TestConfig</code>.</p>
+<h5>The Fake Solution</h5>
+<p>In the beginning I wan't thinking of using generics, since I always have an intuition that &quot;generics only works for the case when you don't have any constraint on the behavior of the subject&quot;, like all the STL data structures in Java.</p>
+<p>As a result, I tried to use interface which can apply constraints to the behavior of the types we want to model. Ideally, you would want to make an interface that models <code>A/BConfigs</code> so that it can be created using <code>Unmarshal</code>. It would be something like this:</p>
+<div class="highlight">
+    <pre class="code" data-lang="Go"><span></span><code><span class="kd">type</span> <span class="nx">configPb</span> <span class="kd">interface</span> <span class="p">{</span>
+    <span class="nx">GetTestConfig</span><span class="p">()</span> <span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">TestConfig</span>
+<span class="p">}</span>
+
+<span class="kd">type</span> <span class="nx">configsPb</span> <span class="kd">interface</span> <span class="p">{</span>
+    <span class="nx">proto</span><span class="p">.</span><span class="nx">Message</span>
+    <span class="nx">GetConfig</span><span class="p">()</span> <span class="p">[]</span><span class="nx">configPb</span>
+<span class="p">}</span>
+</code></pre>
+</div><p>But the problem is obvious, <code>Unmarshal</code> takes in a <code>proto.Message</code> object, which you cannot create without a concrete type. You're able to create an <a href="https://go.dev/tour/methods/11">interface value</a> by doing a cast, but it will still fail because the concrete type doesn't actually implement the correct function:</p>
+<div class="highlight">
+    <pre class="code" data-lang="Go"><span></span><code><span class="c1">// if you do the following</span>
+<span class="kd">var</span> <span class="nx">cfgs</span> <span class="nx">pb</span><span class="p">.</span><span class="nx">AConfigs</span>
+<span class="nx">cfgsInterface</span> <span class="o">:=</span> <span class="nx">configsPb</span><span class="p">(</span><span class="nx">cfgs</span><span class="p">)</span>
+
+<span class="c1">// you will get compiler error</span>
+<span class="p">.</span><span class="o">/</span><span class="nx">prog</span><span class="p">.</span><span class="k">go</span><span class="p">:</span><span class="mi">52</span><span class="p">:</span><span class="mi">12</span><span class="p">:</span> <span class="nx">cannot</span> <span class="nx">convert</span> <span class="nx">cfgs</span> <span class="p">(</span><span class="nx">variable</span> <span class="nx">of</span> <span class="kd">type</span> <span class="nx">pb</span><span class="p">.</span><span class="nx">AConfigs</span><span class="p">)</span> <span class="nx">to</span> <span class="kd">type</span> <span class="nx">configsPb</span><span class="p">:</span> <span class="nx">pb</span><span class="p">.</span><span class="nx">AConfigs</span> <span class="nx">does</span> <span class="nx">not</span> <span class="nx">implement</span> <span class="nx">configsPb</span> <span class="p">(</span><span class="nx">wrong</span> <span class="kd">type</span> <span class="k">for</span> <span class="nx">method</span> <span class="nx">GetConfig</span><span class="p">)</span>
+    	<span class="nx">have</span> <span class="nx">GetConfig</span><span class="p">()</span> <span class="p">[]</span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">AConfig</span>
+    	<span class="nx">want</span> <span class="nx">GetConfig</span><span class="p">()</span> <span class="p">[]</span><span class="nx">configPb</span>
+</code></pre>
+</div><p>I tend to believe that interface in Go alone is not able to model this kind of &quot;nested behaviors&quot;. So we will have to use generics together with interface as constraints, which is mentioned in the later part of <a href="https://go.dev/doc/tutorial/generics">go official introduction to generics</a>.</p>
+<h5>The Solution</h5>
+<p>Without further ado, here is the solution I got:</p>
+<div class="highlight">
+    <pre class="code" data-lang="Go"><span></span><code><span class="kd">type</span> <span class="nx">Key</span> <span class="kd">struct</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+
+<span class="kd">func</span> <span class="nx">NewKey</span><span class="p">(</span><span class="nx">testConfig</span> <span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">TestConfig</span><span class="p">)</span> <span class="nx">Key</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+
+<span class="kd">interface</span> <span class="nx">configPb</span> <span class="p">{</span>
+    <span class="nx">GetTestConfig</span><span class="p">()</span> <span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">TestConfig</span>
+<span class="p">}</span>
+
+<span class="kd">type</span> <span class="nx">ConfigDB</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">configs</span> <span class="kd">map</span><span class="p">[</span><span class="nx">Key</span><span class="p">]</span><span class="nx">configPb</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nx">New</span><span class="p">[</span><span class="nx">D</span> <span class="nx">configPb</span><span class="p">,</span> <span class="nx">T</span> <span class="nx">any</span><span class="p">,</span> <span class="nx">M</span> <span class="kd">interface</span><span class="p">{</span>
+    <span class="nx">proto</span><span class="p">.</span><span class="nx">Message</span>
+    <span class="nx">GetConfig</span><span class="p">()</span> <span class="p">[]</span><span class="nx">D</span>
+    <span class="o">*</span><span class="nx">T</span>
+<span class="p">}](</span><span class="nx">configs</span> <span class="p">[][]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">ConfigDB</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">c</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">ConfigDB</span><span class="p">{</span>
+        <span class="nx">configs</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">Key</span><span class="p">]</span><span class="nx">configPb</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">configBytes</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">configs</span> <span class="p">{</span>
+        <span class="nx">cfgs</span> <span class="o">:=</span> <span class="nx">M</span><span class="p">(</span><span class="nb">new</span><span class="p">(</span><span class="nx">T</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">prototext</span><span class="p">.</span><span class="nx">Unmarshal</span><span class="p">(</span><span class="nx">configBytes</span><span class="p">,</span> <span class="nx">cfgs</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">err</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">cfg</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">cfgs</span><span class="p">.</span><span class="nx">GetConfig</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">key</span> <span class="o">:=</span> <span class="nx">NewKey</span><span class="p">(</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">GetTestConfig</span><span class="p">())</span>
+            <span class="nx">c</span><span class="p">.</span><span class="nx">configs</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="p">=</span> <span class="nx">cfg</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">c</span>
+<span class="p">}</span>
+</code></pre>
+</div><p>Several things to notice:</p>
+<ul>
+<li><code>ConfigDB</code> uses a map to achieve the search config feature, and the <code>Key</code> type is constructed from information from <code>pb.TestConfig</code> which all configs should have.</li>
+<li>Using an interface <code>configPb</code> to model all single config types, which is similar to what we have in the previous section. But modeling for aggregated config types are done by generics:</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="Go"><span></span><code><span class="kd">func</span> <span class="nx">New</span><span class="p">[</span><span class="nx">D</span> <span class="nx">configPb</span><span class="p">,</span> <span class="nx">T</span> <span class="nx">any</span><span class="p">,</span> <span class="nx">M</span> <span class="kd">interface</span><span class="p">{</span>
+    <span class="nx">proto</span><span class="p">.</span><span class="nx">Message</span>       <span class="c1">// need to be a proto.Message to be Unmarshalled</span>
+    <span class="nx">GetConfig</span><span class="p">()</span> <span class="p">[]</span><span class="nx">D</span>     <span class="c1">// models the GetConfig method with correct type D (which will be e.g. AConfig)</span>
+    <span class="o">*</span><span class="nx">T</span>                  <span class="c1">// the above constraints will be applied to T</span>
+<span class="p">}]</span><span class="o">...</span>
+</code></pre>
+</div><ul>
+<li>And when you parse and actually use the configs:</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="Go"><span></span><code><span class="c1">// configs is a [][]byte we got from some magic internal build rule</span>
+
+<span class="nx">configDb</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">configdb</span><span class="p">.</span><span class="nx">New</span><span class="p">[</span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">AConfig</span><span class="p">,</span> <span class="nx">pb</span><span class="p">.</span><span class="nx">AConfigs</span><span class="p">](</span><span class="nx">configs</span><span class="p">)</span>
+
+<span class="c1">// key is a Key constructed through other benchmark selection logic</span>
+
+<span class="nx">config</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">configDb</span><span class="p">.</span><span class="nx">configs</span><span class="p">[</span><span class="nx">key</span><span class="p">].(</span><span class="o">*</span><span class="nx">pb</span><span class="p">.</span><span class="nx">AConfig</span><span class="p">)</span>  <span class="c1">// config would be *pb.AConfig</span>
+</code></pre>
+</div><p>Note that you could also get rid of the type cast from <code>configPb</code> to <code>*pb.AConfig</code> by making <code>configDB</code> a generic type, but we're just making a trade off between type safety and verbosity. In production <code>configDB</code> is much more complicated and very frequently used, so less verbosity is more important.</p>
+<p>Before this refactor, every kind of benchmark repeats the same <code>configDB</code> logic with their own config types, while over 500 boilerplate code was removed after this refactor. With the advanced compiler information of Go language, I would highly recommend anyone facing same problems to try go generics.</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
