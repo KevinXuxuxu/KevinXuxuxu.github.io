@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>Building Private Cloud with Turing Pi 2</title>
+
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">fzxu's blog</a>
+    <h1 class="heading-index">Building Private Cloud with Turing Pi 2</h1>
+
+    <p class="text-gray">
+        <small>2024-01-09 18:55:48</small>
+        <a href="/blog/category/tech/"><small><code>tech</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>I was one of the backers when <a href="https://turingpi.com/product/turing-pi-2/">Turing Pi 2</a> was on kickstarter, and received the stuff around April 2023. But at that time there wasn't any available <a href="https://www.raspberrypi.com/products/compute-module-4/">rpi cm4</a> for me to buy, so the plan was postponed util just last Thanksgiving. I got 4 rpi cm4 4G lite version, and finally started to build a private cloud out of these.</p>
+<p>The plan was simple, boot everything up, install some container orchestration (most likely <a href="https://k3s.io">k3s</a>) and start to move my web services (probably also my GF's) to local. Just going full &quot;self-hosted&quot;. But later I realized that there are much more details that I need to learn or deal with, including but not limited to:</p>
+<ul>
+<li>Casing and thermals. Turing Pi 2 is supposed to fit in any mini-ITX case, but I have some personal preference and also cooling is another thing to worry about.</li>
+<li>Supporting hardwares and compatibility. I will need additional storage (preferably performant ones) to go with the cluster but hardware of specific form factor needs sourcing, and there's some specifications about the Turing Pi 2 board IO connectivity and rpi cm4 compatibility issues that needs some attention.</li>
+<li>Software to learn and try. Although I have quite some experience working with k8s from work, setting up k3s in a more embedded environment with all the networking, security and resource constraint to deal with is going to be a challenge to me.</li>
+<li>The most underrated challenge is going to be finding stuff to achieve with the setup that actually make sense and meaningful. I have a handful of services that I could try to run on the cluster, but that's probably not the best idea for all of them.</li>
+</ul>
+<p>My current progress is that I have a cluster with 4 rpi cm4 setup with k3s and ready to run some of my workload, but the casing and cooling is not resolved so it's not in a long-running state. I will update to this post (or link to new posts) about my previous setups and lessons learnt, and also new progress I would make in the future. Wish me luck!</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
