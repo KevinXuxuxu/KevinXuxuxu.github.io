@@ -94,7 +94,7 @@
     <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> sh -
 </code></pre>
 </div><ul>
-<li>Run the following on the agent nodes (node 2,3,4), substitute <code>myserver</code> and <code>mytoken</code> with your server IP and content from <code>/var/lib/rancher/k3s/server/node-token</code> on master node. k3s-agent will be be installed and automatically started and registered to master:</li>
+<li>Run the following on the agent nodes (node 2,3,4), substitute <code>myserver</code> and <code>mynodetoken</code> with your server IP and content from <code>/var/lib/rancher/k3s/server/node-token</code> on master node. k3s-agent will be be installed and automatically started and registered to master:</li>
 </ul>
 <div class="highlight">
     <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> <span class="nv">K3S_URL</span><span class="o">=</span>https://myserver:6443 <span class="nv">K3S_TOKEN</span><span class="o">=</span>mynodetoken sh -
