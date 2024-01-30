@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>Building Private Cloud: Basic Setup</title>
+
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">fzxu's blog</a>
+    <h1 class="heading-index">Building Private Cloud: Basic Setup</h1>
+
+    <p class="text-gray">
+        <small>2024-01-29 06:57:47</small>
+        <a href="/blog/category/tech/"><small><code>tech</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>As mentioned in <a href="/blog/post/building_private_cloud_with_turing_pi/">a previous post</a>, I have acquired enough parts that's needed for me to start working on building a private cloud (or homelab). This series of blog posts is to record my experience of building this hardware/software system, and hopefully serve as a guide or pointer to anyone trying to do similar things.</p>
+<img src="/static/image/private_cloud.jpg" style="width: 100%"/><p><em>Finished hardware setup and deployment, only software level work left</em></p>
+<h4>Hardware</h4>
+<p>I have to admit that I underestimated the effort that would go into preparing the hardware needed for the setup. Especially when it's your first time, and you're not sure what is needed. So here's a list of hardwares I got for my current setup:</p>
+<ul>
+<li><a href="https://turingpi.com/product/turing-pi-2-5/">Turing Pi 2</a><ul>
+<li><a href="https://turingpi.com/product/pico-psu/">Pico PSU</a></li>
+</ul>
+</li>
+<li><a href="https://www.raspberrypi.com/products/compute-module-4/?variant=raspberry-pi-cm4004000">Raspberry Pi 4 Compute module 4G lite</a> x3<ul>
+<li><a href="https://www.amazon.com/gp/product/B094ZSZCSF/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&amp;psc=1">Waveshare RPi CM4 Heatsink</a> x3</li>
+<li><a href="https://turingpi.com/product/cm4-adapter/">Turing CM4 Adapter</a> x3</li>
+<li><a href="https://www.amazon.com/dp/B08J4HJ98L?ref=ppx_yo2ov_dt_b_product_details&amp;th=1">Sandisk mini SD card</a> 32g x2, 512G x1</li>
+</ul>
+</li>
+<li><a href="https://turingpi.com/product/turing-rk1/?attribute_ram=16+GB">Turing RK1 16G</a><ul>
+<li><a href="https://turingpi.com/product/rk1-heatsink/">RK1 Heatsink</a></li>
+</ul>
+</li>
+<li>Random <a href="https://www.amazon.com/dp/B07GYL5SW5?psc=1&amp;ref=ppx_yo2ov_dt_b_product_details">mini-ITX case</a> from Amazon</li>
+<li>Some <a href="https://www.amazon.com/dp/B08135WS3H?psc=1&amp;ref=ppx_yo2ov_dt_b_product_details">2-pin fan</a> that fits in the case</li>
+<li><a href="https://www.amazon.com/dp/B01GEA8PQA?psc=1&amp;ref=ppx_yo2ov_dt_b_product_details">12V DC Power Supply</a></li>
+<li>ZHITAI TiPlus5000 NVME M.2 SSD 2T</li>
+<li>3D printed IO-shield (instead of <a href="https://turingpi.com/product/io-shield/">this</a>)</li>
+</ul>
+<p>Important parts are the motherboard (Turing Pi 2) and the CM4 and RK1 compute modules. According to <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports-case-and-cooling">Turing's documentation</a> and some discussion, some basic heatsink + any sort of active cooling should be good enough for most cases. Casing and fan choice depend on your design and aesthetics. But better thermal condition and planning is needed if you plan to do some crazy stuff.</p>
+<p>Storage hardware is important and should be planned out, because reliable and performant storage solution is necessary if you intend to do anything serious with the cluster. Check Turing's documentation, specifically <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports">specs and i/o ports</a> to get a clear idea of the i/o availability and connectivity, and plan on what storage you want based on your purpose.</p>
+<h4>Operating Systems</h4>
+<p>As mentioned previously, I have 3 rpi CM4 and 1 RK1 in my setup, with the following OS installed:</p>
+<ul>
+<li>Node 1: rpi CM4 running <a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS with desktop</a></li>
+<li>Node 2,3: rpi CM4 running <a href="https://www.raspberrypi.com/software/operating-systems/">Raspberry Pi OS Lite</a></li>
+<li>Node 4: RK1 running <a href="https://firmware.turingpi.com/turing-rk1/ubuntu_22.04_rockchip_linux/v1.32/">Ubuntu 22.04 LTS Server based on the BSP Linux 5.10</a> which seems to be a customized version for their hardware.</li>
+</ul>
+<p>Following documentations (<a href="https://docs.turingpi.com/docs/raspberry-pi-cm4-flashing-os">rpi CM4</a>, <a href="https://docs.turingpi.com/docs/turing-rk1-flashing-os">RK1</a>), there's multiple ways to flash OS into aforementioned hardware. For rpi CM4 I installed the <a href="https://downloads.raspberrypi.org/imager/imager_latest.dmg">Raspberry Pi Imager</a> on my Macbook and it worked pretty well including pre-setting username/password and authorized_keys for very convenient ssh connection. For RK1 I'm just flashing it <a href="https://docs.turingpi.com/docs/turing-rk1-flashing-os#flashing-using-turing-pi-2-bmc">with BMC</a> because I don't have a USB A-A cable which is needed for the other method.</p>
+<p>Answers to some possible questions:</p>
+<ul>
+<li><em>Why rpi OS with desktop for Node 1?</em> Because only Node 1 has exposed HDMI port, which becomes very handy when you have problem ssh to the server, or debugging kernel issue while starting up.</li>
+<li><em>why RK1 on Node 4?</em> RK1 is the most powerful node I have, but if put on Node 1, its heat will directly blow to back of Node 2, which is very bad thermal condition. Only Node 4 make sense due to the parallel layout on the motherboard. I know, it's a stupid but interesting decision to make.</li>
+</ul>
+<p>There are other OS choices for rpi e.g. <a href="https://dietpi.com/">dietPi</a> or a Ubuntu server version.</p>
+<h4>Virtualization</h4>
+<p>I know, this word is too big for a personal project. But it's just fun when you tell your friend that you're &quot;practicing virtualization technology&quot; in your garage. Jokes aside, for private cloud there's usually 2 choices, or 2 levels of abstraction when we talk about virtualization:</p>
+<ul>
+<li>Hardware level virtualization: A more &quot;old-fashioned&quot; approach. Usually meaning you're creating virtual machines on your hosts. Typical technology would be running KVM using <a href="https://www.proxmox.com/en/">Proxmox</a>, or running VMware hypervisor.</li>
+<li>OS level virtualization: More modern virtualization solution, providing best level of isolation and efficiency with least hassle. Typical example would be using <a href="https://docs.docker.com/">Docker</a> (with <a href="https://docs.docker.com/compose/">Docker Compose</a> or <a href="https://docs.docker.com/engine/swarm/">Docker Swarm</a>), or running a <a href="https://kubernetes.io/">Kubernetes</a> cluster.</li>
+</ul>
+<p>The solution I choose is <a href="https://k3s.io/">K3s</a>, which is a light-weight kubernetes distribution specifically designed for embedded use cases. It comes with lots of useful components already installed e.g. Traefik ingress controller and CoreDNS for cluster DNS. Here's the steps of setting up k3s on the cluster (or follow <a href="https://docs.k3s.io/quick-start">k3s doc</a>).</p>
+<ul>
+<li>Run the following on all machines if <code>curl</code> is not installed.</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="Shell"><span></span><code>sudo apt update <span class="o">&amp;&amp;</span> sudo apt install -y curl
+</code></pre>
+</div><ul>
+<li>For rpi OS, add <code>cgroup_memory=1 cgroup_enable=memory</code> to <code>/boot/cmdline.txt</code>, before <code>rootwait</code>. OS level virtualization needs the host OS to have cgroup setup for resource isolation. For Ubuntu it should be already done.</li>
+<li>Run the following on the master node (for me it's node 1), k3s service will be installed along with useful CLIs, and service will be automatically started:</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> sh -
+</code></pre>
+</div><ul>
+<li>Run the following on the agent nodes (node 2,3,4), substitute <code>myserver</code> and <code>mytoken</code> with your server IP and content from <code>/var/lib/rancher/k3s/server/node-token</code> on master node. k3s-agent will be be installed and automatically started and registered to master:</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> <span class="nv">K3S_URL</span><span class="o">=</span>https://myserver:6443 <span class="nv">K3S_TOKEN</span><span class="o">=</span>mynodetoken sh -
+</code></pre>
+</div><p>After this the k3s cluster should be setup perfectly, and you can verify this by running <code>kubectl get nodes</code> on the master node:</p>
+<div class="highlight">
+    <pre class="code" data-lang="Shell"><span></span><code>$ kubectl get nodes
+NAME       STATUS   ROLES                  AGE    VERSION
+rpicm4n1   Ready    control-plane,master   41d    v1.28.4+k3s2
+rpicm4n2   Ready    &lt;none&gt;                 6d1h   v1.28.5+k3s1
+rpicm4n3   Ready    &lt;none&gt;                 26d    v1.28.5+k3s1
+rk1        Ready    &lt;none&gt;                 6d     v1.28.5+k3s1
+</code></pre>
+</div><p>After deployment, you should setup kubectl on your own computer for remote control of the cluster.</p>
+<h4>Conclusion</h4>
+<p>I should probably stop here because it's already a long post. But now you can play around the cluster and try different stuff (and encounter tons of blockers and give up).</p>
+<p>I will cover more detailed content including how to utilize Traefik ingress controller, how to setup web server, how to use CoreDNS as your local DNS server and much more.</p>
+<p>Hope you enjoy :)</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
