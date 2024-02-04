@@ -230,11 +230,12 @@ Endpoints:                <span class="m">10</span>.42.1.29:8443
   <span class="nt">tls</span><span class="p">:</span>                <span class="c1"># &lt;- added</span>
     <span class="nt">certResolver</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">le</span>  <span class="c1"># &lt;- added</span>
 </code></pre>
-</div><p>And run the <code>kubectl apply</code> command to update the deployment. Now we can only test it with a properly setup domain.</p>
+</div><p>And run the <code>kubectl apply</code> command to update the deployment. Note that the port exposed by <code>mysite</code> is still 80, and the server can serve everything in pure HTTP, because the SSL termination happens in this <code>IngressRoute</code> component.</p>
 <p>For more detailed instruction about supporting HTTPS services, check <a href="https://traefik.io/blog/https-on-kubernetes-using-traefik-proxy/">this blog</a> from Traefik, which covers more about testing and caveats you might run into e.g. use staging acme server for testing to avoid rate limiting, or how to test the TLS quality etc.</p>
 <h4>Up Next</h4>
 <p>When I was learning the k3s and Traefik networking stuff, I got some strange issue: with all the setup above, I can only access my service from outside of my home subnet, but not inside. In following posts I'll cover how to resolve this issue by hosting a local DNS server and more.</p>
 <p>Happy hacking! :)</p>
+<p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/post/building_private_cloud_with_turing_pi/">here</a>.</em></p>
 
     
 
