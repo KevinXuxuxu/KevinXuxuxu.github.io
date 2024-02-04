@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>Building Private Cloud: Hosting Web Service</title>
+
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header>
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <a href="/">fzxu's blog</a>
+    <h1 class="heading-index">Building Private Cloud: Hosting Web Service</h1>
+
+    <p class="text-gray">
+        <small>2024-02-02 05:34:15</small>
+        <a href="/blog/category/default/"><small><code>default</code></small></a>
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>In my <a href="/blog/post/building_private_cloud_basic_setup/">previous post</a>, the basic setup of a private cloud with <a href="https://turingpi.com/">Turing Pi 2</a> board and rpi cm4 is presented. Now we can talk about how to start using the cluster for some simple web services.</p>
+<p>The <a href="https://docs.k3s.io/">k3s</a> system is very convenient in terms of supporting systems, as it comes with pre-installed <a href="https://github.com/traefik/traefik">Traefik</a> ingress controller, which will be an important part of the cluster's network management system. First let's go over how to work with Traefik in a k8s context.</p>
+<h4>Traefik</h4>
+<p>Traefik is a complex system with some internal structures and works with many other services. But for now we mostly care about it's role as a network proxy for our internal services. As shown in this graph I got from <a href="https://doc.traefik.io/traefik/routing/overview/">Traefik docs</a>, it clearly defines components corresponding to each logic abstraction related to the problem it's solving:</p>
+<img src="https://doc.traefik.io/traefik/assets/img/architecture-overview.png" style="width: 100%"/><ul>
+<li>Entrypoint: What are the overall entrypoints of the cluster? There might be many more services in the cluster than the number of ports we're reasonably able to expose, so this is a very important abstraction in network engineering.</li>
+<li>Routers: This is the part where we apply different rules to determine where the the request goes, and we might do some modification to the request, among which the most common one is <a href="https://en.wikipedia.org/wiki/TLS_termination_proxy">SSL termination</a>. This is the part that contains most logic.</li>
+<li>Service: This is the k8s native <code>Service</code> component, using which we claim that some other component is to be served.</li>
+</ul>
+<p>Note that this set of abstraction doesn't care about the physical layout of the deployment, which means that it has a load balancer under the hood. With that we can deploy our service to the most proper host, and optimize for resource efficiency.</p>
+<p>In our k3s setup, we already have 4 entrypoints configured for us, which are <code>:9100</code> for metrics, <code>:9000</code> for Traefik dashboard, <code>:8000</code> for HTTP requests and <code>:8443</code> for HTTPS requests. We can check that either with proxied traefik dashboard:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>kubectl -n kube-system port-forward <span class="k">$(</span>kubectl -n kube-system get pods --selector <span class="s2">&quot;app.kubernetes.io/name=traefik&quot;</span> --output<span class="o">=</span>name<span class="k">)</span> <span class="m">9000</span>:9000
+</code></pre>
+</div><p>and visit <a href="http://localhost:9000/dashboard/#/">http://localhost:9000/dashboard/#/</a>, or just check the Traefik k8s <code>Deployment</code> for details:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ kubectl describe deployment -n kube-system traefik
+Name:                   traefik
+Namespace:              kube-system
+...
+Pod Template:
+  ...
+  Containers:
+   traefik:
+    Image:       rancher/mirrored-library-traefik:2.10.5
+    Ports:       <span class="m">9100</span>/TCP, <span class="m">9000</span>/TCP, <span class="m">8000</span>/TCP, <span class="m">8443</span>/TCP
+    Host Ports:  <span class="m">0</span>/TCP, <span class="m">0</span>/TCP, <span class="m">0</span>/TCP, <span class="m">0</span>/TCP
+    Args:
+      --global.checknewversion
+      --global.sendanonymoususage
+      --entrypoints.metrics.address<span class="o">=</span>:9100/tcp
+      --entrypoints.traefik.address<span class="o">=</span>:9000/tcp
+      --entrypoints.web.address<span class="o">=</span>:8000/tcp
+      --entrypoints.websecure.address<span class="o">=</span>:8443/tcp
+      --api.dashboard<span class="o">=</span><span class="nb">true</span>
+      --ping<span class="o">=</span><span class="nb">true</span>
+...
+</code></pre>
+</div><p>We will be able to add new entrypoints if we want to serve some special services, but for now these should suffice.</p>
+<p>Note that these entrypoints are not yet publicly accessible to external requesters, and some of them shouldn't be (e.g. metrics and dashboard). Traefik also deploys a service load balancer as a k8s <code>Deamonset</code>, which will start a pod on each host to listen on certain ports:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ kubectl describe daemonsets -n kube-system svclb-traefik
+Name:           svclb-traefik-70522e78
+Selector:       <span class="nv">app</span><span class="o">=</span>svclb-traefik-70522e78
+...
+Pods Status:  <span class="m">4</span> Running / <span class="m">0</span> Waiting / <span class="m">0</span> Succeeded / <span class="m">0</span> Failed
+Pod Template:
+  ...
+  Containers:
+   lb-tcp-80:
+    Image:      rancher/klipper-lb:v0.4.4
+    Port:       <span class="m">80</span>/TCP
+    Host Port:  <span class="m">80</span>/TCP
+    Environment:
+      SRC_PORT:    <span class="m">80</span>
+      SRC_RANGES:  <span class="m">0</span>.0.0.0/0
+      DEST_PROTO:  TCP
+      DEST_PORT:   <span class="m">80</span>
+      DEST_IPS:    <span class="m">10</span>.43.219.43
+    Mounts:        &lt;none&gt;
+   lb-tcp-443:
+    Image:      rancher/klipper-lb:v0.4.4
+    Port:       <span class="m">443</span>/TCP
+    Host Port:  <span class="m">443</span>/TCP
+    Environment:
+      SRC_PORT:    <span class="m">443</span>
+      SRC_RANGES:  <span class="m">0</span>.0.0.0/0
+      DEST_PROTO:  TCP
+      DEST_PORT:   <span class="m">443</span>
+      DEST_IPS:    <span class="m">10</span>.43.219.43
+...
+</code></pre>
+</div><p>The listened ports (80 and 443) are all redirected to destination IP <code>10.43.219.43</code> which matches the cluster IP of the Traefik k8s <code>Service</code>:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ kubectl describe service -n kube-system traefik 
+Name:                     traefik
+Namespace:                kube-system
+...
+Selector:                 app.kubernetes.io/instance<span class="o">=</span>traefik-kube-system,app.kubernetes.io/name<span class="o">=</span>traefik
+Type:                     LoadBalancer
+IP Family Policy:         PreferDualStack
+IP Families:              IPv4
+IP:                       <span class="m">10</span>.43.219.43
+IPs:                      <span class="m">10</span>.43.219.43
+...
+Port:                     web  <span class="m">80</span>/TCP
+TargetPort:               web/TCP
+NodePort:                 web  <span class="m">32764</span>/TCP
+Endpoints:                <span class="m">10</span>.42.1.29:8000
+Port:                     websecure  <span class="m">443</span>/TCP
+TargetPort:               websecure/TCP
+NodePort:                 websecure  <span class="m">32135</span>/TCP
+Endpoints:                <span class="m">10</span>.42.1.29:8443
+...
+</code></pre>
+</div><p>The Traefik service will send the request from 80, 443 ports to endpoints 8000, 8443, which matches the entrypoints defined for Traefik.</p>
+<h4>Basic Setup</h4>
+<p>Let's say you want to host your personal website on the cluster. What we need is 3 components: the <code>Deployment</code> for the website server itself (which will automatically create <code>ReplicaSet</code> and <code>Pod</code> for the server), the <code>Service</code> to expose the deployment, and an <code>IngresRoute</code> to connect with Traefik system (fits into the &quot;routers&quot; component we talked about). A basic setup should look like this:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nginx</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite-nginx</span>
+        <span class="nt">ports</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ports</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+    <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+    <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">traefik.containo.us/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">IngressRoute</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">entryPoints</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">web</span>
+  <span class="nt">routes</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Rule</span>
+    <span class="nt">match</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Host(`mysite.domain.com`)</span>
+    <span class="nt">services</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+</code></pre>
+</div><p>Save this to file <code>mysite.yaml</code> and run the following command to deploy:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>kubectl apply -f /path/to/mysite.yaml
+</code></pre>
+</div><p>In this example the server just runs <a href="https://nginx.org/en/">Nginx</a> and probably serves some static web pages, but the shape and behavior of your website can be anything that works for you. The only important thing is to expose a container port for external access.</p>
+<p>In <code>IngressRoute</code> we specify which entrypoint to use. For this example we're using <code>web</code> which corresponds to the HTTP entrypoint. The routing rule basically means that for requests into the specified entrypoint that access host name <code>mysite.domain.com</code>, redirect to <code>mysite</code> service port 80. Note that we can have arbitrarily many services getting request from the same entrypoint, the way to distinguish them is by the matching rules, and we can do much more fancy stuff with that.</p>
+<p>There are 2 ways to test this:</p>
+<ul>
+<li>Go to the domain's provider, point the domain to your home public IP address (<a href="https://whatismyipaddress.com/">what's my IP address?</a>); log into your home router and setup firewall rules and port forwarding (<code>external 80 -&gt; &lt;subnet IP of a node&gt;:80</code>).</li>
+<li>Map the domain name to subnet IP of a node by adding this line in <code>/etc/hosts</code> file:</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="text"><span></span><code>&lt;subnet IP of a node&gt;   mysite.domain.com
+</code></pre>
+</div><p>Either way should work, but the first one is better since that's the eventual approach of deployment. You can try that by go to <code>http://mysite.domain.com</code> in your browser.</p>
+<h4>HTTPS</h4>
+<p>Although it's <a href="https://news.ycombinator.com/item?id=26555873">not our choice</a>, it's close to impossible to host a website with decent user experience without an SSL certificate. Luckily Traefik makes it fairly easy to create, verify and maintain a widely recognized TLS certificate with <a href="https://letsencrypt.org/">Let's Encrypt</a>.</p>
+<p>First, use <code>kubectl apply</code> to apply the following change to the existing Traefik service, with <code>YOUR_EMAIL</code> replaced with your email:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">helm.cattle.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">HelmChartConfig</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">traefik</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">valuesContent</span><span class="p">:</span> <span class="p p-Indicator">|-</span>
+    <span class="no">additionalArguments:</span>
+      <span class="no">- &quot;--log.level=DEBUG&quot;</span>
+      <span class="no">- &quot;--certificatesresolvers.le.acme.email=YOUR_EMAIL&quot;</span>
+      <span class="no">- &quot;--certificatesresolvers.le.acme.storage=/data/acme.json&quot;</span>
+      <span class="no">- &quot;--certificatesresolvers.le.acme.tlschallenge=true&quot;</span>
+      <span class="no">- &quot;--certificatesresolvers.le.acme.caServer=https://acme-v02.api.letsencrypt.org/directory&quot;</span>
+</code></pre>
+</div><p>This creates a certificate resolver named <code>le</code> using Let's Encrypt server, which can be used in your services. To enable https, update the <code>IngressRoute</code> part from previous example to:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">traefik.containo.us/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">IngressRoute</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">entryPoints</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">websecure</span> <span class="c1"># &lt;- changed</span>
+  <span class="nt">routes</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Rule</span>
+    <span class="nt">match</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Host(`mysite.domain.com`)</span>
+    <span class="nt">services</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mysite</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+  <span class="nt">tls</span><span class="p">:</span>                <span class="c1"># &lt;- added</span>
+    <span class="nt">certResolver</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">le</span>  <span class="c1"># &lt;- added</span>
+</code></pre>
+</div><p>And run the <code>kubectl apply</code> command to update the deployment. Now we can only test it with a properly setup domain.</p>
+<p>For more detailed instruction about supporting HTTPS services, check <a href="https://traefik.io/blog/https-on-kubernetes-using-traefik-proxy/">this blog</a> from Traefik, which covers more about testing and caveats you might run into e.g. use staging acme server for testing to avoid rate limiting, or how to test the TLS quality etc.</p>
+<h4>Up Next</h4>
+<p>When I was learning the k3s and Traefik networking stuff, I got some strange issue: with all the setup above, I can only access my service from outside of my home subnet, but not inside. In following posts I'll cover how to resolve this issue by hosting a local DNS server and more.</p>
+<p>Happy hacking! :)</p>
+
+    
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
