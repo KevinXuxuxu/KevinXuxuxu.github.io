@@ -8,6 +8,10 @@
         
     <title>Working with ARM</title>
 
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
     </head>
     <body>
         <div class="main container grid-lg">
@@ -18,7 +22,10 @@
                     </ul>
                 </nav>
                 
-    <a href="/">fzxu's blog</a>
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
     <h1 class="heading-index">Working with ARM</h1>
 
     <p class="text-gray">
@@ -102,6 +109,7 @@ docker manifest inspect fzxu/blog:arm
 </div><p>Finally you'll get the multi-arch support under a single tag like <a href="https://hub.docker.com/r/fzxu/blog/tags">this</a>. I spent quite some time on building multi-arch support for my docker images that I'm using (github ci server, v2ray server, etc.). The reason for this effort other than my shiny new MBP is that I want to start using AWS EC2 spot t4g instances for a (much) <a href="https://aws.amazon.com/ec2/spot/pricing/">better price</a>, and t4g (<code>g</code> for <a href="https://aws.amazon.com/ec2/graviton/">Graviton</a>) is based on arm arch. I'll (probably) have another blog to talk about my cloud solution visions since it's off topic for this post, but that's it for today and thanks for reading.</p>
 
     
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/working-with-arm.md">Markdown source</a></i>
 
     <script src="https://utteranc.es/client.js"
             repo="KevinXuxuxu/KevinXuxuxu.github.io"
