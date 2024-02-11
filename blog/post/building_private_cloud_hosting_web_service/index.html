@@ -8,6 +8,18 @@
         
     <title>Building Private Cloud: Hosting Web Service</title>
 
+    <style>
+        /* Initially hide the element */
+        h4 .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h4:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
@@ -52,7 +64,7 @@
     
     <p>In my <a href="/blog/post/building_private_cloud_basic_setup/">previous post</a>, the basic setup of a private cloud with <a href="https://turingpi.com/">Turing Pi 2</a> board and rpi cm4 is presented. Now we can talk about how to start using the cluster for some simple web services.</p>
 <p>The <a href="https://docs.k3s.io/">k3s</a> system is very convenient in terms of supporting systems, as it comes with pre-installed <a href="https://github.com/traefik/traefik">Traefik</a> ingress controller, which will be an important part of the cluster's network management system. First let's go over how to work with Traefik in a k8s context.</p>
-<h4>Traefik</h4>
+<h4 id="traefik">Traefik&nbsp;<a class="hidden" tabindex="-1" href="#traefik" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Traefik is a complex system with some internal structures and works with many other services. But for now we mostly care about it's role as a network proxy for our internal services. As shown in this graph I got from <a href="https://doc.traefik.io/traefik/routing/overview/">Traefik docs</a>, it clearly defines components corresponding to each logic abstraction related to the problem it's solving:</p>
 <img src="https://doc.traefik.io/traefik/assets/img/architecture-overview.png" style="width: 100%"/><ul>
 <li>Entrypoint: What are the overall entrypoints of the cluster? There might be many more services in the cluster than the number of ports we're reasonably able to expose, so this is a very important abstraction in network engineering.</li>
@@ -146,7 +158,7 @@ Endpoints:                <span class="m">10</span>.42.1.29:8443
 ...
 </code></pre>
 </div><p>The Traefik service will send the request from 80, 443 ports to endpoints 8000, 8443, which matches the entrypoints defined for Traefik.</p>
-<h4>Basic Setup</h4>
+<h4 id="basic_setup">Basic Setup&nbsp;<a class="hidden" tabindex="-1" href="#basic_setup" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Let's say you want to host your personal website on the cluster. What we need is 3 components: the <code>Deployment</code> for the website server itself (which will automatically create <code>ReplicaSet</code> and <code>Pod</code> for the server), the <code>Service</code> to expose the deployment, and an <code>IngresRoute</code> to connect with Traefik system (fits into the &quot;routers&quot; component we talked about). A basic setup should look like this:</p>
 <div class="highlight">
     <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
@@ -212,7 +224,7 @@ Endpoints:                <span class="m">10</span>.42.1.29:8443
     <pre class="code" data-lang="text"><span></span><code>&lt;subnet IP of a node&gt;   mysite.domain.com
 </code></pre>
 </div><p>Either way should work, but the first one is better since that's the eventual approach of deployment. You can try that by go to <code>http://mysite.domain.com</code> in your browser.</p>
-<h4>HTTPS</h4>
+<h4 id="https">HTTPS&nbsp;<a class="hidden" tabindex="-1" href="#https" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Although it's <a href="https://news.ycombinator.com/item?id=26555873">not our choice</a>, it's close to impossible to host a website with decent user experience without an SSL certificate. Luckily Traefik makes it fairly easy to create, verify and maintain a widely recognized TLS certificate with <a href="https://letsencrypt.org/">Let's Encrypt</a>.</p>
 <p>First, use <code>kubectl apply</code> to apply the following change to the existing Traefik service, with <code>YOUR_EMAIL</code> replaced with your email:</p>
 <div class="highlight">
@@ -250,7 +262,7 @@ Endpoints:                <span class="m">10</span>.42.1.29:8443
 </code></pre>
 </div><p>And run the <code>kubectl apply</code> command to update the deployment. Note that the port exposed by <code>mysite</code> is still 80, and the server can serve everything in pure HTTP, because the SSL termination happens in this <code>IngressRoute</code> component.</p>
 <p>For more detailed instruction about supporting HTTPS services, check <a href="https://traefik.io/blog/https-on-kubernetes-using-traefik-proxy/">this blog</a> from Traefik, which covers more about testing and caveats you might run into e.g. use staging acme server for testing to avoid rate limiting, or how to test the TLS quality etc.</p>
-<h4>Up Next</h4>
+<h4 id="up_next">Up Next&nbsp;<a class="hidden" tabindex="-1" href="#up_next" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>When I was learning the k3s and Traefik networking stuff, I got some strange issue: with all the setup above, I can only access my service from outside of my home subnet, but not inside. In following posts I'll cover how to resolve this issue by hosting a local DNS server and more.</p>
 <p>Happy hacking! :)</p>
 <p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/post/building_private_cloud_with_turing_pi/">here</a>.</em></p>

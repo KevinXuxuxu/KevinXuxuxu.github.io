@@ -8,6 +8,18 @@
         
     <title>System Design: Twitter Hashtag Popularity by Time</title>
 
+    <style>
+        /* Initially hide the element */
+        h4 .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h4:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
@@ -47,7 +59,7 @@
                     
     
     <p>Yesterday I came across a quite nicely setup system design interview question while I was preparing for my upcoming interviews. So I feel like sharing it here as a good reference.</p>
-<h3>The problem</h3>
+<h3 id="the_problem">The problem&nbsp;<a class="hidden" tabindex="-1" href="#the_problem" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
 <p>So without further ado, here is the problem itself:</p>
 <blockquote>
 <p>Design a Twitter hashtag popularity query system that could (1) ingest twitter data and (2) give popularity histogram when queried with a specific hashtag and a time range.</p>
@@ -65,22 +77,22 @@
 </li>
 <li>What is the query used for in a business sense? More specifically what is the frequency of this query, and what is the distribution of the possible time range queried? To me this is more of a business insight scenario, where the user would be a small group of analysts so the query qps shouldn't be anything to worry about. As for time range, we could be targeting a difficult scenario where the query could ask data withing a few years, and with 5 minutes as its finest granularity at the same time.</li>
 </ul>
-<h3>Solution</h3>
+<h3 id="solution">Solution&nbsp;<a class="hidden" tabindex="-1" href="#solution" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
 <p>According to <a href="https://github.com/Jeevan-kumar-Raj/Grokking-System-Design#steps-how-i-approach-the-system-design-questions-in-interviews">Grokking system design</a> we should follow certain steps to tackle system design questions including analyse requirement and constraints, get a component diagram of the basic system, and start to go deep into some specific bottleneck of tradeoff in the system that we need to make.</p>
 <p>For this problem, we did the requirement and constraints part already. Just need to add another important part: always ask for the scale of the problem, maybe the amount of data or qps of requests the solution needs to deal with, and it should be as specific as a number (e.g. for this problem there's around 500 million tweets generated daily, and each of them less than 140 characters.) These specific numbers gives good direction about how the system should be designed.</p>
 <p>Now we have the simple diagram (made with <a href="https://excalidraw.com/">excalidraw</a>) of the components we need in this system, and we can expand the discussion around that.</p>
 <p><img src="/static/image/twitter.png" alt="twitter.png" /></p>
-<h4>Data ingestion</h4>
+<h4 id="data_ingestion">Data ingestion&nbsp;<a class="hidden" tabindex="-1" href="#data_ingestion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>There isn't much to talk about data ingestion as we already had some discussion about possible ways to use the Twitter API. Some other points that probably worth some thoughts are: What if the network fails? What if the program accidentally crashes? How to do backfill? How to guarantee no data loss or duplication? Is it exactly-once or at-least-once delivery?</p>
 <p>Ideally you should have a checkpoint file on a persistent file system that track the latest batch of data that actually successfully stored, and an auto restarting puller program should be good enough. Of course you need good monitoring and alerting to attract human attention when there's network issue etc.</p>
-<h4>Data model</h4>
+<h4 id="data_model">Data model&nbsp;<a class="hidden" tabindex="-1" href="#data_model" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The data model for this problem is quite straight forward, as we only care about number of tweets with a specific hashtag in a specific time range. A unit of data should look like this:</p>
 <div class="highlight">
     <pre class="code" data-lang="text"><span></span><code>hashtag     time_range                              count
 #NASA       (2021-12-31 16:45, 2021-12-31 16:50)    42
 </code></pre>
 </div><p>Here the time range equals to the finest granularity we care about. If we can aggregate data over it before storage, we will have the best data efficiency we can get.</p>
-<h4>Database vs. File system</h4>
+<h4 id="database_vs._file_system">Database vs. File system&nbsp;<a class="hidden" tabindex="-1" href="#database_vs._file_system" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>It is a long lasting debate about which is more suitable for data storage: database (no matter RDBMS or NoSQL) or file like storage (plain file system, HDFS or object storage like S3). Particularly for this problem, file like storage should be a better choice for the following reasons:</p>
 <ul>
 <li><strong>Data structure</strong>: This problem deals with unstructured stream of data instead of structured data, which is much more suitable for file based storage for better data efficiency.</li>
@@ -119,13 +131,13 @@ $ head data/daily/year<span class="o">=</span><span class="m">2021</span>/month<
 $ head data/gid<span class="o">=</span>asdf/year<span class="o">=</span><span class="m">2021</span>/month<span class="o">=</span><span class="m">12</span>/date<span class="o">=</span><span class="m">31</span>/hour<span class="o">=</span><span class="m">16</span>/0000001
 </code></pre>
 </div><p>Given what we have discussed, it would be appropriate to have data ingestion service store the data to a event queue (e.g. Kafka) and use a Spark structure streaming job to consume and preprocess the data before sink into the storage.</p>
-<h4>Query service</h4>
+<h4 id="query_service">Query service&nbsp;<a class="hidden" tabindex="-1" href="#query_service" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>As we mentioned that the query requirement is less strict in terms of service capacity or latency, there is still some aspect we could talk about:</p>
 <ul>
 <li>Result caching: query such a large dataset is very costly, so it would be nice to have a cache that can store recent query result in memory, and be able to do simple aggregation or increment updates for use cases like dashboards.</li>
 <li>...What was the other aspect I was thinking about?</li>
 </ul>
-<h3>Afterword</h3>
+<h3 id="afterword">Afterword&nbsp;<a class="hidden" tabindex="-1" href="#afterword" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
 <p>Thanks my friend dkdpy for providing this interview question and had an in-depth discussion with me for ~45 min. This (should be) very helpful for my upcoming system design interviews in January. Wish me luck!</p>
 
     

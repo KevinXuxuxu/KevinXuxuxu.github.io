@@ -8,6 +8,18 @@
         
     <title>AoC 2020 (1)</title>
 
+    <style>
+        /* Initially hide the element */
+        h4 .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h4:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
@@ -49,7 +61,7 @@
                     
     
     <p>最近发现了一个coding比赛的网站叫 <a href="https://adventofcode.com/2020">Advent of Code</a>。网站会在每年12月1日开始每天更新一道题直到25日（圣诞节），每天的前一百名做对的用户会有得分奖励。题目的形式感觉和 <a href="https://codeforces.com/">codeforces</a> 有点类似，就是会编一个没什么卵用的故事来（企图）帮助你理解题意的那种。我现在做了一半多的题目，把解题思路和代码记录在这里，这样也不算白做（</p>
-<h4>Day 1: Report Repair <a href="https://adventofcode.com/2020/day/1">*</a></h4>
+<h4 id="day_1:_report_repair_<a_href="https://adventofcode.com/2020/day/1">*</a>">Day 1: Report Repair <a href="https://adventofcode.com/2020/day/1">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_1:_report_repair_<a_href="https://adventofcode.com/2020/day/1">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>基本上是Leetcode上的 <a href="https://leetcode.com/problems/two-sum/">two sum</a> 和 followup (three sum)，双指针可以 <code>O(n)</code> 时间完成，没什么太多好说的</p>
 <div class="highlight">
     <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_input</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
@@ -78,7 +90,7 @@
         <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span>
 </code></pre>
-</div><h4>Day 2: Password Philosophy <a href="https://adventofcode.com/2020/day/2">*</a></h4>
+</div><h4 id="day_2:_password_philosophy_<a_href="https://adventofcode.com/2020/day/2">*</a>">Day 2: Password Philosophy <a href="https://adventofcode.com/2020/day/2">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_2:_password_philosophy_<a_href="https://adventofcode.com/2020/day/2">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>第一问是简单的字符统计， 第二问更水，可以用一个异或 (<code>^</code> in python) 来比较清晰的解决</p>
 <div class="highlight">
     <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_input_line</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
@@ -97,7 +109,7 @@
     <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">t</span><span class="p">)</span>
 </code></pre>
-</div><h4>Day 3: Toboggan Trajectory <a href="https://adventofcode.com/2020/day/3">*</a></h4>
+</div><h4 id="day_3:_toboggan_trajectory_<a_href="https://adventofcode.com/2020/day/3">*</a>">Day 3: Toboggan Trajectory <a href="https://adventofcode.com/2020/day/3">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_3:_toboggan_trajectory_<a_href="https://adventofcode.com/2020/day/3">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>姑且算是一道模拟（？）第一问检查每一行第4,7,10...个的位置，第二问有可能跳行，超出行宽了就取模，总之没什么难度。</p>
 <div class="highlight">
     <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">solve_num_trees</span><span class="p">(</span><span class="n">input_s</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
@@ -106,7 +118,7 @@
     <span class="n">width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">k</span><span class="p">][(</span><span class="n">k</span> <span class="o">//</span> <span class="n">i</span> <span class="o">*</span> <span class="n">j</span><span class="p">)</span> <span class="o">%</span> <span class="n">width</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">)</span>
 </code></pre>
-</div><h4>Day 4: Passport Processing <a href="https://adventofcode.com/2020/day/4">*</a></h4>
+</div><h4 id="day_4:_passport_processing_<a_href="https://adventofcode.com/2020/day/4">*</a>">Day 4: Passport Processing <a href="https://adventofcode.com/2020/day/4">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_4:_passport_processing_<a_href="https://adventofcode.com/2020/day/4">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>究极麻烦的字符串处理题，用正则表达式会方便很多。没什么算法。</p>
 <div class="highlight">
     <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_pp_info</span><span class="p">(</span><span class="n">input_s</span><span class="p">):</span>
@@ -158,7 +170,7 @@
 <span class="k">def</span> <span class="nf">solve_pp_2</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
     <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">input_s</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">validate_pp</span><span class="p">(</span><span class="n">parse_pp_info</span><span class="p">(</span><span class="n">input_s</span><span class="p">)))</span>
 </code></pre>
-</div><h4>Day 5: Binary Boarding <a href="https://adventofcode.com/2020/day/5">*</a></h4>
+</div><h4 id="day_5:_binary_boarding_<a_href="https://adventofcode.com/2020/day/5">*</a>">Day 5: Binary Boarding <a href="https://adventofcode.com/2020/day/5">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_5:_binary_boarding_<a_href="https://adventofcode.com/2020/day/5">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>简单考察二进制转化的题；第二问直接把没出现的座位号都打出来就找到了，写的比较糙（</p>
 <div class="highlight">
     <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_binary_num</span><span class="p">(</span><span class="n">input_s</span><span class="p">,</span> <span class="n">zero</span><span class="p">,</span> <span class="n">one</span><span class="p">):</span>
@@ -187,7 +199,7 @@
         <span class="n">all_ids</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">get_seat_id</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">all_ids</span><span class="p">)</span>
 </code></pre>
-</div><h4>Day 6: Custom Customs <a href="https://adventofcode.com/2020/day/6">*</a></h4>
+</div><h4 id="day_6:_custom_customs_<a_href="https://adventofcode.com/2020/day/6">*</a>">Day 6: Custom Customs <a href="https://adventofcode.com/2020/day/6">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_6:_custom_customs_<a_href="https://adventofcode.com/2020/day/6">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>简单的字符串统计和集合交并的问题；话说我刚知道 <code>reduce</code> 在 Python3 里被取消了（至少是从built-in函数里移除了），因为</p>
 <blockquote>
 <p>however, 99 percent of the time an explicit for loop is more readable. (<a href="https://docs.python.org/3.0/whatsnew/3.0.html#builtins">ref</a>)</p>
@@ -222,7 +234,7 @@
         <span class="n">count</span> <span class="o">+=</span> <span class="n">count_intersection_within_group</span><span class="p">(</span><span class="n">group_input</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">count</span>
 </code></pre>
-</div><h4>Day 7: Handy Haversacks <a href="https://adventofcode.com/2020/day/7">*</a></h4>
+</div><h4 id="day_7:_handy_haversacks_<a_href="https://adventofcode.com/2020/day/7">*</a>">Day 7: Handy Haversacks <a href="https://adventofcode.com/2020/day/7">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_7:_handy_haversacks_<a_href="https://adventofcode.com/2020/day/7">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>（终于有一道有点意思的题了）看起来很花里胡哨，理解题意之后发现是一道搜索题，DFS/BFS应该都可以。
 先用一点 regex magic 把自然语言的输入 parse 成邻接表。
 第一问是反向的不计重复的搜索，第二问是正向的记重复的搜索。
@@ -289,7 +301,7 @@
     <span class="c1"># second part</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">bfs_count_bags</span><span class="p">(</span><span class="n">color_map</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
 </code></pre>
-</div><h4>Day 8: Handheld Halting <a href="https://adventofcode.com/2020/day/8">*</a></h4>
+</div><h4 id="day_8:_handheld_halting_<a_href="https://adventofcode.com/2020/day/8">*</a>">Day 8: Handheld Halting <a href="https://adventofcode.com/2020/day/8">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_8:_handheld_halting_<a_href="https://adventofcode.com/2020/day/8">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>比较常规的模拟题，第二问因为没想到有什么特别聪明的办法，所以用的是暴搜（遍历每一个可能出错的指令然后试一试）</p>
 <div class="highlight">
     <pre class="code" data-lang="python"><span></span><code><span class="k">def</span> <span class="nf">parse_boot_instructions</span><span class="p">(</span><span class="n">ss</span><span class="p">):</span>
@@ -338,7 +350,7 @@
             <span class="k">return</span> <span class="n">acc</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 </code></pre>
-</div><h4>Day 9: Encoding Error <a href="https://adventofcode.com/2020/day/9">*</a></h4>
+</div><h4 id="day_9:_encoding_error_<a_href="https://adventofcode.com/2020/day/9">*</a>">Day 9: Encoding Error <a href="https://adventofcode.com/2020/day/9">*</a>&nbsp;<a class="hidden" tabindex="-1" href="#day_9:_encoding_error_<a_href="https://adventofcode.com/2020/day/9">*</a>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>第一问是在可变列表中的 two sum, 既然 check 的过程已经是 <code>O(n)</code> 的了，我们就可以在不牺牲复杂度的情况下更新元素（指插入正确位置）
 但是我好像在代码里偷懒了（用了sort（每次
 第二问是给定序列和目标，求序列中的连续子列（长度至少为2）使得子列的和为目标，可以用双指针解。</p>

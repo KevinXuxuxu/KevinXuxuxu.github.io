@@ -8,6 +8,18 @@
         
     <title>Building Private Cloud: Local DNS</title>
 
+    <style>
+        /* Initially hide the element */
+        h4 .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h4:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
@@ -50,10 +62,10 @@
                 <div class="column col-sm-12 col-md-10 col-8">
                     
     
-    <p>I have mentioned a strange problem in <a href="/blog/post/building_private_cloud_hosting_web_service/">a previous post</a> that I'm not able to access services hosted in my cluster from within my home subnet, but it works from outside. This issue bothered me quite a while, once I was even considering that the whole Traefik stack is broken with this k3s distribution. (Which is reasonable because honestly who would turn off phone wifi to check home cluster network issue?)</p>
+    <p>I have mentioned a strange problem in <a href="/blog/post/building_private_cloud_hosting_web_service/#up_next">a previous post</a> that I'm not able to access services hosted in my cluster from within my home subnet, but it works from outside. This issue bothered me quite a while, once I was even considering that the whole Traefik stack is broken with this k3s distribution. (Which is reasonable because honestly who would turn off phone wifi to check home cluster network issue?)</p>
 <p>The solution I have is to utilize the <a href="https://coredns.io/">CoreDNS</a> service that comes with k3s as a local self-hosted DNS server, and resolve my inter-cluster services directly to my cluster IP, so that it doesn't have to go the long way, avoiding whatever problem that way had. Plus, having a local DNS is very convenient when you have some internal service, but want cool domain name and TLS enabled for them.</p>
 <p>So let's get right into it.</p>
-<h4>CoreDNS Service</h4>
+<h4 id="coredns_service">CoreDNS Service&nbsp;<a class="hidden" tabindex="-1" href="#coredns_service" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>CoreDNS is an <a href="https://docs.k3s.io/networking#coredns">important component</a> of the k3s network infrastructure, serving as the <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">cluster DNS</a> of the k8s system. We can check the existing deployment status of the service in the <code>kube-system</code> namespace:</p>
 <div class="highlight">
     <pre class="code" data-lang="shell"><span></span><code>$ kubectl get deployment -n kube-system -o wide
@@ -114,7 +126,7 @@ Volumes:
 </ul>
 </li>
 </ul>
-<h4>the Corefile</h4>
+<h4 id="the_corefile">the Corefile&nbsp;<a class="hidden" tabindex="-1" href="#the_corefile" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Now let's take a look at the <code>Corefile</code> used to configure the DNS behaviors:</p>
 <div class="highlight">
     <pre class="code" data-lang="shell"><span></span><code>$ kubectl describe configmap coredns -n kube-system
@@ -156,14 +168,14 @@ NodeHosts:
 <span class="m">192</span>.168.0.13 rk1
 ...
 </code></pre>
-</div><p>The <code>Corefile</code> itself has only one rule that starts with <code>.:53</code>, which means this rule resolves DNS requests to port <code>53</code> of all domains. Within it is a few important components:</p>
+</div><p>The <code>Corefile</code> itself has only one rule that starts with <code>.:53</code>, which means this rule resolves DNS requests to port <code>53</code> of all domains. Within it are a few important components:</p>
 <ul>
 <li><code>kubernetes</code> is <a href="https://coredns.io/plugins/kubernetes/">the plugin</a> used for k8s service discovery, just leave it there so that nothing gets broken.</li>
 <li><code>hosts</code> <a href="https://coredns.io/plugins/hosts/">plugin</a> reads a hosts file and use that for domain resolution. For now it read the file <code>/etc/coredns/NodeHosts</code> whose content is from the same config map. We'll be mostly changing this for now.</li>
 <li><code>forward</code> <a href="https://coredns.io/plugins/forward/">plugin</a> defines the behavior that delegates name resolution to other nameservers. In this case it forwards requests to whatever server that's in <code>/etc/resolv.conf</code>, which should be populated by the containers network environment. For a homelab, that's mostly being configured by your ISP.</li>
 <li>Custom plugins in the main rule is imported from <code>/etc/coredns/custom/*.override</code> and custom rules are imported from <code>/etc/coredns/custom/*.server</code>, which is not configured by default but is something to consider if you want to do more fancy stuff.</li>
 </ul>
-<p>To edit this existing <code>ConfigMap</code> we can use the following command:</p>
+<p>To edit this existing <code>ConfigMap</code>, use the following command:</p>
 <div class="highlight">
     <pre class="code" data-lang="shell"><span></span><code>$ kubectl edit configmap coredns -n kube-system
 </code></pre>
@@ -174,9 +186,9 @@ NodeHosts:
 192.168.0.10    service.local.example.com
 </code></pre>
 </div><p>Note that the &quot;external&quot; in this context means &quot;external of the cluster&quot;. So we will need to add here even if we want to host a service only locally in the home internet.</p>
-<h4>Is that all?</h4>
+<h4 id="is_that_all?">Is that all?&nbsp;<a class="hidden" tabindex="-1" href="#is_that_all?" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Not yet. As we mentioned before, any service within the cluster has to use Traefik to expose to requesters outside of the cluster. The CoreDNS by default only serves the inter-cluster use case, so we need to add the missing pieces.</p>
-<p>Remember the piece of YAML (from <a href="/blog/post/building_private_cloud_hosting_web_service/">this post</a>) we applied for Traefik that configures the auto certificate signing with Let's Encrypt? Add the following to it and apply again. This will add a new Traefik entrypoint for port <code>53</code>:</p>
+<p>Remember <a href="/blog/post/building_private_cloud_hosting_web_service/#https">the piece of YAML</a> we applied for Traefik that configures the auto certificate signing with Let's Encrypt? Add the following to it and apply again. This will add a new Traefik entrypoint for port <code>53</code>:</p>
 <div class="highlight">
     <pre class="code" data-lang="yaml"><span></span><code><span class="nn">...</span>
 <span class="nt">spec</span><span class="p">:</span>
@@ -219,10 +231,11 @@ NodeHosts:
       <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">53</span>
 </code></pre>
 </div><p>After applying this everything should work. For any device to access these services freely, change the DNS config of the wifi (or ethernet) network to favor the local DNS server, which is accessible from the cluster IP (IP of master node). Another benefit is that all the node names are also being resolved automatically. Now I can do <code>ssh rpicm4n1</code> without changing <code>/etc/hosts</code> anymore.</p>
-<h4>Conclusion</h4>
+<h4 id="conclusion">Conclusion&nbsp;<a class="hidden" tabindex="-1" href="#conclusion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Although I'm able to find a relatively good solution, it's still not clear what the actual problem is. My guess is that when you go &quot;the long way&quot; only trying to get back to your home public IP, the places you're from are being ignored during the jumps. Kinda like the &quot;not visiting a visited point&quot; rule in search algorithms.</p>
 <p>Anyways, that's all for this post. In following posts we'll shift gears and talk about storage solutions for private cloud (if I get all the work done), as well as hosting local container registry in a k8s context. Hope you enjoy :)</p>
 <p>BTW Happy Chinese New Year!</p>
+<p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/tag/Private%20Cloud/">here</a>.</em></p>
 
     
     <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/building_private_cloud_local_dns.md">Markdown source</a></i>
