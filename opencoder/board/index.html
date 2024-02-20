@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="https://unpkg.com/spectre.css/dist/spectre.min.css">
+        <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="/opencoder/static/script/opencoder.js"></script>
+        <script src="https://unpkg.com/@antonz/runno@0.6.1/dist/runno.js"></script>
+        <script src="https://unpkg.com/@antonz/codapi@0.12.0/dist/engine/wasi.js"></script>
+        <!-- <script src="https://unpkg.com/@antonz/codapi@0.12.0/dist/snippet.js"></script> -->
+        <script src="/opencoder/static/script/codapi/snippet.js"></script>
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="column col-sm-12 col-md-10 col-8">
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                <h1>Welcome to OpenCoder!</h1>
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    <pre class="code"><code id="board" class="language-python" data-lang="python">print("hello")</code></pre>
+                    <codapi-snippet engine="wasi" sandbox="python" editor="basic"></codapi-snippet>
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
