@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        
+    <title>Building Private Cloud: Storage Solution</title>
+
+    <style>
+        /* Initially hide the element */
+        .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h3:hover .hidden {
+          display: inline-block;
+        }
+        h4:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="column col-sm-12 col-md-10 col-8">
+                <nav>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item">&nbsp;
+                    </ul>
+                </nav>
+                
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
+    <h1 class="heading-index">Building Private Cloud: Storage Solution</h1>
+
+    <p class="text-gray">
+        <small>2024-02-24 02:13:53</small>
+        <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/k8s/" class="text-dark">k8s</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Storage/" class="text-dark">Storage</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/NAS/" class="text-dark">NAS</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/NFS/" class="text-dark">NFS</a></span>
+        
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>In this post we're going to switch gear and talk about storage solutions, which is also an important part of any cloud deployment. We'll cover some general choices for private cloud, talk about hardware limitations in my setup, and go over a few storage solutions I attempted and either failed or succeeded.</p>
+<h4 id="general_discussions">General Discussions&nbsp;<a class="hidden" tabindex="-1" href="#general_discussions" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>There're a few aspect we need to consider when choosing storage solutions for a cluster. Some of them are more important and other are less based on your actual use case. The ones in <em>Italic</em> is what (I think) is more important for my setup.</p>
+<ul>
+<li><em>Performance</em>: if the solution provide good (or at least enough) and consistent performance to file access, measured by sequential/random read/write latency/throughput. We'll cover an example of performance benchmarking later in this post. Some major aspects to consider: hardware/network performance, data locality, access pattern, etc.</li>
+<li><em>Reliability</em>: the ability to withstand failure and recover. This requires the system to contain certain amount redundancy in terms of service provider, and backup mechanism to prevent data loss.</li>
+<li><em>Security</em>: probably one of the most important but under-rated aspect, but usually considered under the larger picture of the security of the whole cluster.</li>
+<li>Scalability: if the solution is easy to scale with the growth of the cluster without serious disruption of service or changing architecture entirely. This might be less of a concern in the context of a home cluster, because it usually doesn't scale that much or that fast.</li>
+<li>Cost-effectiveness: if the cost of building such solution is good (low) considering all the properties mentioned above. Unlike for commercial data centers, there usually isn't a good quantitative way of measuring this for home clusters. It's more about a combination of the actual bucks you put in for the hardware (or software), plus the time spent in implementing and maintaining it.</li>
+</ul>
+<p>Now let's talk about some major solutions that we can potentially use:</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Network-attached_storage">NAS</a> (Network Attached Storage): provides file-level storage accessed over a network. It is very commonly used for shared storage in compute clusters where multiple nodes need access to the same files. It is usually implemented with NFS or SMB protocol, and the underlying storage could vary from a consumer level NAS product with all the RAID and security already configured, or one node on the cluster with a large disk/SSD.</li>
+<li>Distributed File System: distribute data across multiple storage nodes, providing scalability and fault tolerance. Examples include <a href="https://hadoop.apache.org/docs/r1.2.1/hdfs_design.html">HDFS</a> (Hadoop File System), <a href="https://docs.gluster.org/en/latest/">GlusterFS</a> and <a href="https://docs.ceph.com/en/latest/cephfs/">CephFS</a>. This gives us a unified solution with the flexibility to configure redundancy, fault-tolerance and security based on our use case.</li>
+<li>Cloud Storage Services: such as AWS EBS, AWS S3, Google Cloud Storage, etc. Considering the network IO performance and cost for hosting data and network IO (which is kind of against my purpose of building private cluster), these options are mostly used for cold storage or backup.</li>
+</ul>
+<h4 id="hardware_limitations">Hardware Limitations&nbsp;<a class="hidden" tabindex="-1" href="#hardware_limitations" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>As mentioned in my <a href="/blog/post/building_private_cloud_basic_setup/">previous post</a>, my cluster is setup on the <a href="https://turingpi.com/product/turing-pi-2-5/">Turing Pi 2</a> computing board, which has inherent hardware and connectivity limitations that's covered in <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports">Specs and IO ports doc</a>:</p>
+<img src="https://files.readme.io/e5637c6-TuringPi_V2_interconnection.png" style="width: 100%"/><ul>
+<li>Only node 1 and 2 have mini-PCIe connectivity, so it's hard to implement any distributed solution with consistent storage on each node.</li>
+<li>With Raspberry Pi CM4, the PCIe compatibility is not trivial and very uncertain. Jeff Geerling built a <a href="https://pipci.jeffgeerling.com/">RPi PCIe Database</a> which contains some tested SSD cards that's supposed to work with CM4. But the data might be stale, and sourcing (old) hardware of specific model could be hard and expensive. Will cover more on this later.</li>
+<li>The M.2 slots for NVME drives on the back for each node seems very promising, but they only work with compute modules other than RPi CM4 <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports#mpcie-m2-nvme-sata-usb-ports-mapping">*</a>. I only have one RK1 on node 4 (actually that's the reason I bought the RK1 in the first place)</li>
+<li>2x SATA3 connectivity for node 3, which should be able to work with most SATA based drives. But that requires additional space in the casing for mounting the hardware so I haven't tested that yet.</li>
+</ul>
+<p>In conclusion, as a light-weight embedded approach to self-hosting, the Turing Pi 2 board is not designed to have any sort of unified large-capacity IO across all nodes. As a result we'll have to give up redundancy of some sort, and implement something of easy but robust and fits better for our context.</p>
+<h4 id="solutions">Solutions&nbsp;<a class="hidden" tabindex="-1" href="#solutions" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>In this section we'll talk about some simple solutions I tried in the context of my use case: hosting various services on a k8s cluster. For solutions that worked, I'll share the implementation and simple performance banchmerking, and for others we can discover how they might failed.</p>
+<ul>
+<li><strong>SD cards or onboard eMMC</strong>: For all compute modules that work on Turing Pi 2, they either have mini-SD card slot (e.g. on the adapter for CM4), or on board eMMC (e.g. RK1). As they are so close to the compute (&quot;data locality&quot;), they deliver good enough performance overall. But there're multiple drawbacks:<ul>
+<li>They're usually small, especially eMMC. Either 32G or 64G top, or you need to pay some decent price for 512G or 1T micro-SSD card that's less performant and reliable than other solutions.</li>
+<li>The OS is usually installed on the SSD card or eMMC due to locality, so storing data on them doesn't provide enough isolation and security for the system. Also it will be much harder to connect and recover if your OS crashes.</li>
+</ul>
+</li>
+<li><strong>M.2 SSD through mini-PCIe</strong>: This is the solution I have struggled for the longest time. I used to have 4 RPi CM4 for the nodes and relying on this to work as my primary storage solution. But since then I have had so many weird problems with the compatibility that it's still not fully working for me. I'll probably get back to this issue and solve it, but for now here's some points to note:<ul>
+<li>Difference between mSATA and mini-PCIe: This is a very confusing point because mSATA and mini-PCIe looks the same on the hardware side, but their underlying data transmission standard is different (SATA and PCIe). I'm able to plug in an mSATA SSD (<a href="https://www.amazon.com/Kingston-1024G-Kc600-Sata3-Msata/dp/B08ZNRTDD8/">e.g.</a>) on the Turing Pi 2 but it only has PCIe compatibility.</li>
+<li>Adapter needed: Another problem is that somehow nearly all SSD cards on the market with this form factor are working with SATA standards, so we have to use an M.2 SSD and an M.2-to-mini-PCIe adapter (<a href="https://www.amazon.com/Deal4GO-Express-Adapter-Converter-DW1820/dp/B07PJ453LC/">e.g.</a>) to use it on this board.</li>
+<li>Hardware-firmware-system compatibility: I'll keep this part simple and save the details for another post, but according to <a href="https://bugzilla.kernel.org/show_bug.cgi?id=217276">this bug</a> or <a href="https://github.com/raspberrypi/rpi-eeprom/issues/378">this Github issue</a>, there're known issues for NVME SSD on RPis with PCIe port. The current compatibility regarding any combination of SSD producer/model, mother board connectivity and OS running on RPi is very unclear, and could take a long time of trail-and-error for one to achieve a working solution.</li>
+</ul>
+</li>
+<li><strong>M.2 NVME on the back</strong>: After (tentatively) giving up the previous solution, I bought a RK1 which is connected with the backside M.2 port, and it worked flawlessly. I'm using a 2T <a href="https://www.aliexpress.us/item/3256804775048309.html">ZHITAI TiPlus5000</a> I bought from China.</li>
+</ul>
+
+    
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/building_private_cloud_storage_solution.md">Markdown source</a></i>
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
