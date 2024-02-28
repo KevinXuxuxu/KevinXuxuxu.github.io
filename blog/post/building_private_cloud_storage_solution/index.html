@@ -21,6 +21,9 @@
         h4:hover .hidden {
           display: inline-block;
         }
+        h5:hover .hidden {
+          display: inline-block;
+        }
     </style>
 
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
@@ -91,7 +94,7 @@
 </ul>
 <p>In conclusion, as a light-weight embedded approach to self-hosting, the Turing Pi 2 board is not designed to have any sort of unified large-capacity IO across all nodes. As a result we'll have to give up redundancy of some sort, and implement something of easy but robust and fits better for our context.</p>
 <h4 id="solutions">Solutions&nbsp;<a class="hidden" tabindex="-1" href="#solutions" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
-<p>In this section we'll talk about some simple solutions I tried in the context of my use case: hosting various services on a k8s cluster. For solutions that worked, I'll share the implementation and simple performance banchmerking, and for others we can discover how they might failed.</p>
+<p>In this section we'll talk about some simple solutions I tried in the context of my use case: hosting various services on a k8s cluster. For solutions that worked, I'll share the implementation and simple performance benchmarking, and for others we can discover how they might failed in later sections.</p>
 <ul>
 <li><strong>SD cards or onboard eMMC</strong>: For all compute modules that work on Turing Pi 2, they either have mini-SD card slot (e.g. on the adapter for CM4), or on board eMMC (e.g. RK1). As they are so close to the compute (&quot;data locality&quot;), they deliver good enough performance overall. But there're multiple drawbacks:<ul>
 <li>They're usually small, especially eMMC. Either 32G or 64G top, or you need to pay some decent price for 512G or 1T micro-SSD card that's less performant and reliable than other solutions.</li>
@@ -105,7 +108,154 @@
 </ul>
 </li>
 <li><strong>M.2 NVME on the back</strong>: After (tentatively) giving up the previous solution, I bought a RK1 which is connected with the backside M.2 port, and it worked flawlessly. I'm using a 2T <a href="https://www.aliexpress.us/item/3256804775048309.html">ZHITAI TiPlus5000</a> I bought from China.</li>
+<li><strong>Standalone NAS</strong>: This is also another convenient option if you already have a NAS running in your local network. The performance might not be as good as previous options (as we'll see in later benchmarking results), but you cannot beat the convenience of it.</li>
 </ul>
+<h4 id="implementation">Implementation&nbsp;<a class="hidden" tabindex="-1" href="#implementation" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>My current solution combines the M.2 NVMe and NAS option. While it's not that scalable, reliable or secure, it's relatively straightforward to implement and offers satisfactory performance.`</p>
+<p>To support persistent storage for k8s services, we usually mount a <code>Volume</code> of <code>hostPath</code> type, which is equivalent of mounting a directory to docker container from the host. But usually for the sake of resource utilization and load balancing, we want the pods to be able to run on any node instead of fixed to one. To achieve that we need an NFS server for the storage, and mount it to the same path on every node. We will cover some major steps to achieve this solution.</p>
+<h5 id="configure_new_disk">Configure New Disk&nbsp;<a class="hidden" tabindex="-1" href="#configure_new_disk" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
+<p>These steps are applicable when we just plugged in a new disk on to one host.</p>
+<ul>
+<li>Run <code>lsblk</code> to list block storage devices, and check if the disk is present</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ lsblk
+NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+mmcblk0      <span class="m">179</span>:0    <span class="m">0</span> <span class="m">29</span>.1G  <span class="m">0</span> disk 
+├─mmcblk0p1  <span class="m">179</span>:1    <span class="m">0</span>  512M  <span class="m">0</span> part /boot/firmware
+└─mmcblk0p2  <span class="m">179</span>:2    <span class="m">0</span> <span class="m">28</span>.6G  <span class="m">0</span> part /
+mmcblk0boot0 <span class="m">179</span>:32   <span class="m">0</span>    4M  <span class="m">1</span> disk 
+mmcblk0boot1 <span class="m">179</span>:64   <span class="m">0</span>    4M  <span class="m">1</span> disk 
+nvme0n1      <span class="m">259</span>:0    <span class="m">0</span>  <span class="m">1</span>.9T  <span class="m">0</span> disk   <span class="c1"># &lt;-------</span>
+</code></pre>
+</div><ul>
+<li>Note that there isn't any partition on the disk so it's not usable. Create partition on it with <code>fdisk</code> with default configurations. For a fresh new disk the commands should be <code>n</code> (for new partition), <code>p</code> (for primary partition), <code>1</code> (for just 1 partitions) and <code>w</code> (for write the changes to the disk)</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ sudo fdisk /dev/nvme0n1
+
+Welcome to fdisk <span class="o">(</span>util-linux <span class="m">2</span>.36.1<span class="o">)</span>.
+Changes will remain <span class="k">in</span> memory only, <span class="k">until</span> you decide to write them.
+Be careful before using the write command.
+
+
+Command <span class="o">(</span>m <span class="k">for</span> <span class="nb">help</span><span class="o">)</span>: n
+Partition <span class="nb">type</span>
+   p   primary <span class="o">(</span><span class="m">0</span> primary, <span class="m">0</span> extended, <span class="m">4</span> free<span class="o">)</span>
+   e   extended <span class="o">(</span>container <span class="k">for</span> logical partitions<span class="o">)</span>
+Select <span class="o">(</span>default p<span class="o">)</span>: p
+Partition number <span class="o">(</span><span class="m">1</span>-128, default <span class="m">1</span><span class="o">)</span>: <span class="m">1</span>
+First sector <span class="o">(</span><span class="m">2048</span>-10485759, default <span class="m">2048</span><span class="o">)</span>: 
+Last sector, +/-sectors or +/-size<span class="o">{</span>K,M,G,T,P<span class="o">}</span> <span class="o">(</span><span class="m">2048</span>-10485759, default <span class="m">10485759</span><span class="o">)</span>: 
+
+Created a new partition <span class="m">1</span> of <span class="nb">type</span> <span class="s1">&#39;Linux filesystem&#39;</span> and of size <span class="m">5</span> GiB.
+
+Command <span class="o">(</span>m <span class="k">for</span> <span class="nb">help</span><span class="o">)</span>: w
+The partition table has been altered.
+Syncing disks.
+</code></pre>
+</div><blockquote>
+<p>To verify, run <code>lsblk</code> again and you should see the newly created partition under the disk.</p>
+</blockquote>
+<ul>
+<li>Make a file system on the partition, which correspond to what we used to call &quot;format the disk&quot;</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>sudo mkfs -t ext4 /dev/nvme0n1p1
+</code></pre>
+</div><blockquote>
+<p>To verify, run <code>lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINT</code> and check the FSTYPE column for FS format information</p>
+</blockquote>
+<ul>
+<li>Create a mounting point for the file system and setup correct owner and permissions</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>sudo mkdir /mnt/&lt;fs_name&gt;
+sudo chown -R &lt;user&gt;:&lt;user&gt; /mnt/&lt;fs_name&gt;
+sudo chmod <span class="m">764</span> /mnt/&lt;fs_name&gt;
+</code></pre>
+</div><ul>
+<li>For a one-time testing, using the following command to mount the disk to the mounting point</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>mount /dev/nvme0n1p1 /mnt/&lt;fs_name&gt;
+</code></pre>
+</div><blockquote>
+<p>To verify, run <code>df -h</code> which will show file system usage in all available file systems, including the newly mounted disk.</p>
+</blockquote>
+<ul>
+<li>To automatically mount on system restart, check the disk partition UUID and add the a line to <code>/etc/fstab</code></li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ sudo blkid
+/dev/nvme0n1p1: <span class="nv">UUID</span><span class="o">=</span><span class="s2">&quot;e3aecbef-...&quot;</span> <span class="nv">BLOCK_SIZE</span><span class="o">=</span><span class="s2">&quot;4096&quot;</span> <span class="nv">TYPE</span><span class="o">=</span><span class="s2">&quot;ext4&quot;</span> <span class="nv">PARTUUID</span><span class="o">=</span><span class="s2">&quot;...&quot;</span>
+...
+<span class="c1"># add the following line to /etc/fstab</span>
+<span class="nv">UUID</span><span class="o">=</span>e3aecbef-...       /mnt/m2 ext4    defaults        <span class="m">1</span>       <span class="m">1</span>
+</code></pre>
+</div><h5 id="setup_nfs_server">Setup NFS Server&nbsp;<a class="hidden" tabindex="-1" href="#setup_nfs_server" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
+<p>For the NAS solution, check instructions from the NAS provider (e.g. <a href="https://www.qnap.com/en-us/how-to/faq/article/how-to-enable-and-setup-host-access-for-nfs-connection">QNAP</a>) on how to host NFS server in local network and set corresponding permissions.</p>
+<p>To share a disk on one node with NFS server, check installing instructions for the corresponding linux distribution of the host (<a href="https://ubuntu.com/server/docs/service-nfs">Ubuntu</a>, <a href="https://dietpi.com/docs/software/file_servers/#nfs">DietPi</a>, etc.). Generally for any Debian based system you can install with <code>apt</code></p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>sudo apt update
+sudo apt install nfs-kernel-server
+</code></pre>
+</div><p>Shared directories and permissions can be configured in <code>/etc/exports</code> like this:</p>
+<div class="highlight">
+    <pre class="code" data-lang="text"><span></span><code>/mnt/&lt;fs_name&gt;/shared   &lt;node1_ip&gt;(rw,sync,no_subtree_check) &lt;node2_ip&gt;(rw,sync,no_subtree_check) ...
+</code></pre>
+</div><p>Here I'm only giving access to other nodes in the cluster for better security. After this, run <code>sudo exportfs -a</code> to update the config to NFS server.</p>
+<p>One thing to mention is that although NFS server can be controlled by <code>systemctl</code>, you will only see <code>active (exited)</code> in the service status. This doesn't mean that the NFS server failed to start or crashed. NFS service is in kernel space, not user space. As a result no active service is running in the user space, hence the status. The service you see with <code>systemctl</code> is more like a process to trigger the actual NFS server in kernel, and it successfully finished and exited.</p>
+<h5 id="mount_nfs_on_clients">Mount NFS on Clients&nbsp;<a class="hidden" tabindex="-1" href="#mount_nfs_on_clients" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
+<p>Apply the following steps on all other nodes that need to access the NFS server.</p>
+<ul>
+<li>First, create the mounting point and set correct owner and permissions:</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>sudo mkdir /mnt/&lt;fs_name&gt;/shared
+sudo chown -R &lt;user&gt;:&lt;user&gt; /mnt/&lt;fs_name&gt;/shared
+sudo chmod <span class="m">764</span> /mnt/&lt;fs_name&gt;/shared
+</code></pre>
+</div><ul>
+<li>For a one-time testing, using the following command to mount the disk to the mounting point</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>mount -t nfs &lt;nfs_server_ip&gt;:/mnt/&lt;fs_name&gt;/shared /mnt/&lt;fs_name&gt;/shared
+</code></pre>
+</div><blockquote>
+<p>Use <code>df -h</code> to verify.</p>
+</blockquote>
+<ul>
+<li>To automatically mount on system restart, add the a line to <code>/etc/fstab</code></li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="text"><span></span><code>&lt;nfs_server_ip&gt;:/mnt/&lt;fs_name&gt;/shared /mnt/&lt;fs_name&gt;/shared nfs     defaults,bg     0       0
+</code></pre>
+</div><p>One thing to notice is how file system permissions work across NFS servers and clients. Pay attention to <code>root_squash</code> and <code>all_squash</code> config options, and also matching user ids between server and client is something we can consider.</p>
+<h4 id="benchmarking">Benchmarking&nbsp;<a class="hidden" tabindex="-1" href="#benchmarking" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>I have done a set of simple filesystem IO benchmarking with my current setup using <a href="https://github.com/akopytov/sysbench">sysbench</a>. With the <code>fileio</code> built-in test, we can easily test read/write latency/throughput under sequential or random access. Sysbench doesn't seem to have an official documentation, but you can check <a href="https://manpages.org/sysbench">this</a> on how to run and config the fileio benchmark.</p>
+<p>Here's the setup of the benchmarks:</p>
+<ul>
+<li>Benchmarks to run: (sequantial, random) x (read-only, write-only) workload on 10G of data with 4 threads for 120 seconds.</li>
+<li>Target file system: mounted standalone NAS, and NVME hosted with NFS</li>
+<li>Target nodes: rk1 which is plugged with NVME and hosting NFS, rpicm4n1 which is mounting the NVME as NFS client</li>
+<li>Measure overall throughput and p99 latency</li>
+</ul>
+<img src="/static/image/fileio_bench.png" style="width: 100%" /><p>The result verifies most of my assumptions, and also shows some potential improvements in the future:</p>
+<ul>
+<li>Most of the time NAS performs the same or worse than NVME, except for sequential write. I don't have a clear answer for that but maybe NAS has some sort of write cache?</li>
+<li>NVME performs much better at random read/write due to the obvious difference between SSD and HDD, which is the main reason for me to implement the NVME-over-NFS solution.</li>
+<li>Performance difference between NFS client and host is visible but not too bad (comparing nvme results between 2 tested nodes), which means the network IO is controlled well on the motherboard. Sequential/random read on client node is about the same while differs ~2x on host, which means that the bottleneck is indeed network IO.</li>
+</ul>
+<h4 id="conclusion_and_future_work">Conclusion and Future Work&nbsp;<a class="hidden" tabindex="-1" href="#conclusion_and_future_work" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>We should probably stop here as this is already a lengthy post. I know that the final solution I settled with is in no way a perfect solution, but it satisfied basic requirements while still relatively easy to implement. A few followup work to consider:</p>
+<ul>
+<li>Get to the bottom of the &quot;PCIe SSD on RPi&quot; rabbit hole and fully utilize the mini-PCIe connectivity for node 1 and 2.</li>
+<li>Investigate some distributed file system solutions (maybe CephFS?) and implement one for better reliability and performance (and fun).</li>
+<li>Benchmark more storage solutions, including micro-SSD and onboard eMMC, and any future solutions.</li>
+</ul>
+<p>Hope you enjoyed, and happy hacking!</p>
+<p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/tag/Private%20Cloud/">here</a>.</em></p>
 
     
     <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/building_private_cloud_storage_solution.md">Markdown source</a></i>
