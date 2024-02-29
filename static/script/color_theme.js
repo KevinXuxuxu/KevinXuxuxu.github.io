@@ -19,10 +19,13 @@ function getCookie(cName) {
 function set_color_theme(color_theme) {
     setCookie('color_theme', color_theme, 30);
     var spectre_style = document.getElementById('spectre');
+    var moon = document.getElementById('moon');
     if (color_theme === 'dark') {
         spectre_style.setAttribute('href', '/static/style/spectre_dark.min.css');
+        moon.textContent = '🌖';
     } else {
         spectre_style.setAttribute('href', '/static/style/spectre.min.css');
+        moon.textContent = '🌒';
     }
 }
 
@@ -43,4 +46,4 @@ function switch_color_theme() {
     }
 }
 
-init_color_theme();
+window.onload = init_color_theme;
