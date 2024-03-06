@@ -95,8 +95,9 @@
 <li>Cloud Storage Services: such as AWS EBS, AWS S3, Google Cloud Storage, etc. Considering the network IO performance and cost for hosting data and network IO (which is kind of against my purpose of building private cluster), these options are mostly used for cold storage or backup.</li>
 </ul>
 <h4 id="hardware_limitations">Hardware Limitations&nbsp;<a class="hidden" tabindex="-1" href="#hardware_limitations" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
-<p>As mentioned in my <a href="/blog/post/building_private_cloud_basic_setup/">previous post</a>, my cluster is setup on the <a href="https://turingpi.com/product/turing-pi-2-5/">Turing Pi 2</a> computing board, which has inherent hardware and connectivity limitations that's covered in <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports">Specs and IO ports doc</a>:</p>
-<img src="https://files.readme.io/e5637c6-TuringPi_V2_interconnection.png" style="width: 100%"/><ul>
+<p>As mentioned in my <a href="/blog/post/building_private_cloud_basic_setup/">previous post</a>, my cluster is setup on the <a href="https://turingpi.com/product/turing-pi-2-5/">Turing Pi 2</a> computing board, which has inherent hardware and connectivity limitations that's covered in <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports">Specs and IO ports doc</a>:
+<p style="text-align: center"><img src="/static/image/turingpi2_io.png" alt="turingpi2_io" style="width: 100%"/><em class="text-gray">Turing Pi 2 Front Side IO Specification</em></p></p>
+<ul>
 <li>Only node 1 and 2 have mini-PCIe connectivity, so it's hard to implement any distributed solution with consistent storage on each node.</li>
 <li>With Raspberry Pi CM4, the PCIe compatibility is not trivial and very uncertain. Jeff Geerling built a <a href="https://pipci.jeffgeerling.com/">RPi PCIe Database</a> which contains some tested SSD cards that's supposed to work with CM4. But the data might be stale, and sourcing (old) hardware of specific model could be hard and expensive. Will cover more on this later.</li>
 <li>The M.2 slots for NVME drives on the back for each node seems very promising, but they only work with compute modules other than RPi CM4 <a href="https://docs.turingpi.com/docs/turing-pi2-specs-and-io-ports#mpcie-m2-nvme-sata-usb-ports-mapping">*</a>. I only have one RK1 on node 4 (actually that's the reason I bought the RK1 in the first place)</li>
@@ -251,7 +252,8 @@ sudo chmod <span class="m">764</span> /mnt/&lt;fs_name&gt;/shared
 <li>Target nodes: rk1 which is plugged with NVME and hosting NFS, rpicm4n1 which is mounting the NVME as NFS client</li>
 <li>Measure overall throughput and p99 latency</li>
 </ul>
-<img src="/static/image/fileio_bench.png" style="width: 100%" /><p>The result verifies most of my assumptions, and also shows some potential improvements in the future:</p>
+<p><p style="text-align: center"><img src="/static/image/fileio_bench.png" alt="benchmark_result" style="width: 100%"/><em class="text-gray">Simple Benchmark Result with sysbench fileio</em></p></p>
+<p>The result verifies most of my assumptions, and also shows some potential improvements in the future:</p>
 <ul>
 <li>Most of the time NAS performs the same or worse than NVME, except for sequential write. I don't have a clear answer for that but maybe NAS has some sort of write cache?</li>
 <li>NVME performs much better at random read/write due to the obvious difference between SSD and HDD, which is the main reason for me to implement the NVME-over-NFS solution.</li>
