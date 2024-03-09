@@ -149,12 +149,13 @@
 </code></pre>
 </div><p>This is very confusing because to anyone without frontend experience, this looks like the same variable! But in fact the <code>document.cookie</code> is just a sort of API for you to set and get cookies in the form of strings, and it doesn't work as it seems.</p>
 <p>Anyways, I whipped up some rough JS on to a generic switch element from Spectre form components and here we are. I also added a pair of symmetrical moon emoji (🌒/🌖) to make it a bit cuter :)</p>
-<p>There's still a bunch of work to do (mostly keep adjusting color schemes for chips, code block, ...) but that's mostly it. Hope you enjoyed and happy hacking!</p>
+<p>There's still a bunch of work to do<sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup> but that's mostly it. Hope you enjoyed and happy hacking!</p>
 <section class="footnotes">
 <ol>
 <li id="fn-1"><p>What Adrian had is of course much more sophisticated, while my framework is built as simply as possible and specifically suits my requirements and habit, or you could say it's &quot;opinionated&quot;.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
 <li id="fn-2"><p>As an infra engineer, I first tried to build it in an <a href="https://hub.docker.com/_/node/tags">official node docker container</a> and there are so many of them! They are so large that I'm reluctant to keep as a dev env, and they mostly don't work (🌚) because (I'm guessing) some old dependency of Spectre css is depending on Python 2.7 which is on none of the official images.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
 <li id="fn-3"><p>Google Configuration Language, internally used by Google. Fun fact: infra engineers spend more time juggling configurations than writing actual code.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p>Mostly color adjustments for chip elements, code block, ... Also when you are in dark mode and going to a new page, the screen will quickly flash depending on the loading speed, and I don't have a very good solution yet. May be I'll have to use the <code>data-theme=&quot;dark&quot;</code> approach (<a href="https://github.com/coliff/dark-mode-switch?tab=readme-ov-file#how-it-works">ref</a>) instead of css switching, which involves much more complex change into Spectre's codebase.<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
 </ol>
 </section>
 
