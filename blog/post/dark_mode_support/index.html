@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link id="spectre" rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        <script>
+            var dark_css_path = "/static/style/spectre_dark.min.css";
+            var light_css_path = "/static/style/spectre.min.css";
+        </script>
+        <script src="/static/script/color_theme.js"></script>
+        
+    <title>Dark Mode Support</title>
+
+    <style>
+        /* Initially hide the element */
+        .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h3:hover .hidden {
+          display: inline-block;
+        }
+        h4:hover .hidden {
+          display: inline-block;
+        }
+        h5:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="navbar">
+                <section class="navbar-section">
+                </section>
+                <section class="navbar-section">
+                    <label class="form-switch">
+                        <input type="checkbox" onclick="switch_color_theme();">
+                        <i class="form-icon"></i> <p id="moon"></p>
+                    </label>
+                </section>
+            </header>
+            <header class="column col-sm-12 col-md-10 col-8">
+                
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
+    <h1 class="heading-index">Dark Mode Support</h1>
+
+    <p class="text-gray">
+        <small>2024-03-07 07:33:14</small>
+        <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/frontend/" class="text-dark">frontend</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/CSS/" class="text-dark">CSS</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Javascript/" class="text-dark">Javascript</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/npm/" class="text-dark">npm</a></span>
+        
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>Recently I have been doing quite some frontend development involving improvement of my <a href="https://github.com/KevinXuxuxu/blog">blog</a> framework as well as some new side projects (specifically <a href="https://github.com/KevinXuxuxu/opencoder">OpenCoder</a> but I'll save it for a separate post). As a system/infra engineer I have always had a mixed feeling about frontend developing: they're both fascinating and boring, both super exciting when you make it right, and mindlessly dull when you fail. So here's a short post about my recent experience with too much detail that no one wants to read about.</p>
+<h4 id="the_dark_mode_🌒">The Dark Mode 🌒&nbsp;<a class="hidden" tabindex="-1" href="#the_dark_mode_🌒" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>I have always wanted dark mode for my site, because deep down I'm dark and evil person.</p>
+<p>No, but seriously. I have everything in dark mode if possible and I feel like being flashbombed every time I have to open something without dark mode (like Google spreadsheet). So of course I want my own site to be more pleasant to read, at least for myself.</p>
+<p>So a very brief intro about my blog framework: Getting inspired by <a href="https://death.andgravity.com/about">Death and Gravity</a><sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> I built this static site generator that enables you to write simple markdown, populate decent blog post and publish to Github.io. It uses <a href="https://mistune.lepture.com/en/latest/">Mistune</a> for markdown rendering, <a href="https://pygments.org/docs/quickstart/">Pygments</a> for code syntax highlighting, <a href="https://picturepan2.github.io/spectre/index.html">Spectre.css</a> for frontend styling (this part is important and will be covered in test) and <a href="https://flask.palletsprojects.com/en/3.0.x/quickstart/">Flask</a> + <a href="https://frozen-flask.readthedocs.io/en/latest/">Frozen Flask</a> to host and populate the static site pages.</p>
+<p>I have been happily using this framework for a few years now, but my work is mostly on the backend side (markdown rendering, hosting, tooling, etc.). The frontend is mostly left as is, given that Spectre.css is pretty and simple enough for my aesthetics.</p>
+<p>Unfortunately it doesn't support dark mode. And since it has been idle (abandoned?) for almost 4 years (<a href="https://github.com/picturepan2/spectre/commit/8847251d71b4dac27e8407cbdb71ae89ce156a43">last commit</a>), I don't expect it to be supported anytime soon. There're some others forking the repo and making their own dark mode, but I still prefer the path of learning and making a dark mode myself.</p>
+<h4 id="spectre.css">SPECTRE.CSS&nbsp;<a class="hidden" tabindex="-1" href="#spectre.css" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>So the plan is simple: fork and clone the repo, try to compile it, read and understand it just enough to know the key part that controls the colors, and configure it using a beautiful dark mode pallet. So as suggested in the <a href="https://picturepan2.github.io/spectre/getting-started/custom.html">doc</a>, I used the npm of god knows what version I have on my mac and did <code>npm install</code>, and it failed without any surprise.</p>
+<p>After struggling for a few hours<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>, I had to build my own dev container and finally successfully compiling it. Here's the <a href="https://github.com/KevinXuxuxu/spectre/blob/master/Dockerfile">Dockerfile</a> in case anyone want to quickly compile a customized version of it. The compiling is simple, it uses <a href="https://gulpjs.com/docs/en/getting-started/quick-start">gulp.js</a> to compile and make a distribution of css files of different purpose and size. Actually quite convenient.</p>
+<p>Now that I can safely dive into the codebase, here's some naive take from an amateur of frontend engineering. The source code are in the <code>src</code> folder, which contains lots of <code>.scss</code> files with relatively flat structure. My analogy is that css is like a sort of configuration language for styles; and <a href="https://sass-lang.com/">scss</a> is like a more flexible, or a templating language which allows you to some crazy stuff (define variable, control flow, ...) and finally compile to css. Just like <a href="https://jsonnet.org/">Jsonnet</a> or GCL<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>, which I'm fairly familiar with (but not too proud of)!</p>
+<p>With some simple search I found the key file: <a href="https://github.com/picturepan2/spectre/blob/master/src/_variables.scss">_variable.scss</a>, which contains all the color definition, along with some other important stuff like fonts and sizes.</p>
+<div class="highlight">
+    <pre class="code" data-lang="css"><span></span><code><span class="o">...</span>
+<span class="o">//</span> <span class="nt">Core</span> <span class="nt">colors</span>
+<span class="o">$</span><span class="nt">primary-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">5755d9</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">primary-color-dark</span><span class="o">:</span> <span class="nt">darken</span><span class="o">($</span><span class="nt">primary-color</span><span class="o">,</span> <span class="nt">3</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">primary-color-light</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">primary-color</span><span class="o">,</span> <span class="nt">3</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">secondary-color</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">primary-color</span><span class="o">,</span> <span class="nt">37</span><span class="p">.</span><span class="nc">5</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">secondary-color-dark</span><span class="o">:</span> <span class="nt">darken</span><span class="o">($</span><span class="nt">secondary-color</span><span class="o">,</span> <span class="nt">3</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">secondary-color-light</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">secondary-color</span><span class="o">,</span> <span class="nt">3</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+
+<span class="o">//</span> <span class="nt">Gray</span> <span class="nt">colors</span>
+<span class="o">$</span><span class="nt">dark-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">303742</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">light-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">fff</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">gray-color</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">dark-color</span><span class="o">,</span> <span class="nt">55</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">gray-color-dark</span><span class="o">:</span> <span class="nt">darken</span><span class="o">($</span><span class="nt">gray-color</span><span class="o">,</span> <span class="nt">30</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">gray-color-light</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">gray-color</span><span class="o">,</span> <span class="nt">20</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+
+<span class="o">$</span><span class="nt">border-color</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">dark-color</span><span class="o">,</span> <span class="nt">65</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">border-color-dark</span><span class="o">:</span> <span class="nt">darken</span><span class="o">($</span><span class="nt">border-color</span><span class="o">,</span> <span class="nt">10</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">border-color-light</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">border-color</span><span class="o">,</span> <span class="nt">8</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">bg-color</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">dark-color</span><span class="o">,</span> <span class="nt">75</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">bg-color-dark</span><span class="o">:</span> <span class="nt">darken</span><span class="o">($</span><span class="nt">bg-color</span><span class="o">,</span> <span class="nt">3</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">bg-color-light</span><span class="o">:</span> <span class="o">$</span><span class="nt">light-color</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+
+<span class="o">//</span> <span class="nt">Control</span> <span class="nt">colors</span>
+<span class="o">$</span><span class="nt">success-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">32b643</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">warning-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">ffb700</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">error-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">e85600</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+
+<span class="o">//</span> <span class="nt">Other</span> <span class="nt">colors</span>
+<span class="o">$</span><span class="nt">code-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">d73e48</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">highlight-color</span><span class="o">:</span> <span class="p">#</span><span class="nn">ffe9b3</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">body-bg</span><span class="o">:</span> <span class="o">$</span><span class="nt">bg-color-light</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">body-font-color</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">dark-color</span><span class="o">,</span> <span class="nt">5</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">link-color</span><span class="o">:</span> <span class="o">$</span><span class="nt">primary-color</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">link-color-dark</span><span class="o">:</span> <span class="nt">darken</span><span class="o">($</span><span class="nt">link-color</span><span class="o">,</span> <span class="nt">10</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">link-color-light</span><span class="o">:</span> <span class="nt">lighten</span><span class="o">($</span><span class="nt">link-color</span><span class="o">,</span> <span class="nt">10</span><span class="o">%)</span> <span class="o">!</span><span class="nt">default</span><span class="o">;</span>
+<span class="o">...</span>
+</code></pre>
+</div><p>Apparently scss has some <a href="https://sass-lang.com/documentation/modules/color/">builtin color functions</a> that compute the rest of the colors from some basic colors. But the way it computes here seems pretty arbitrary. It might work if you want to change a key color e.g. from purple-ish to blue-ish, but probably not going to work with dark mode.</p>
+<p><p style="text-align: center"><img src="/static/image/fail_dark_mode.png" alt="fail_dark_mode" style="width: 100%"/><em class="text-gray">Trust me, I tried</em></p></p>
+<p>To construct a customized dark mode pallet I choose to base off of <a href="https://github.com/nealmckee/penumbra">Penumbra</a> color theme which is what I'm using for all my dev environments. It is very nice that they have all the color values listed <a href="https://github.com/nealmckee/penumbra/blob/main/penumbra.tsv">here</a> to easily choose from. The objective is to use Penumbra as a reference but still keep the flavor and harmonic with the default Spectre color configuration. The result I came up with is just like this page if you switch to dark mode from up-right corner. It might need a little final touch but it's good enough for now.</p>
+<h4 id="the_switch">The Switch&nbsp;<a class="hidden" tabindex="-1" href="#the_switch" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>I'm talking about the little switch I used to switch between dark and light mode, not the Nintendo one. So it controls a simple binary state of the page, I've done this a few times before with JS so it should be fairly easy. The basic requirements are:</p>
+<ul>
+<li>Switch the css source file of the page.</li>
+<li>Know the current state of the page.</li>
+<li>Keep the state across refresh</li>
+</ul>
+<p>The first 2 are pretty basic, but the 3rd one need some cookie handling. Basically cookie is this piece of memory (?) that is persistent between different pages, sites and browser sessions. It's quite confusing because when you write and read cookie, you do both in the form of string. But they are <strong>not the same string</strong>! The string you constructed when setting a cookie looks like this:</p>
+<div class="highlight">
+    <pre class="code" data-lang="javascript"><span></span><code><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span> <span class="o">=</span>
+    <span class="s2">&quot;color_theme=dark; expires=Mon, 08 Apr 2024 05:12:10 GMT; path=/&quot;</span><span class="p">;</span>
+</code></pre>
+</div><p>The actual key and value are in the front, followed by expiration and scope of effect. And to read the cookie, you parse the <strong>exact same variable</strong></p>
+<div class="highlight">
+    <pre class="code" data-lang="javascript"><span></span><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">);</span>
+<span class="c1">// color_theme=dark</span>
+</code></pre>
+</div><p>This is very confusing because to anyone without frontend experience, this looks like the same variable! But in fact the <code>document.cookie</code> is just a sort of API for you to set and get cookies in the form of strings, and it doesn't work as it seems.</p>
+<p>Anyways, I whipped up some rough JS on to a generic switch element from Spectre form components and here we are. I also added a pair of symmetrical moon emoji (🌒/🌖) to make it a bit cuter :)</p>
+<p>There's still a bunch of work to do (mostly keep adjusting color schemes for chips, code block, ...) but that's mostly it. Hope you enjoyed and happy hacking!</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>What Adrian had is of course much more sophisticated, while my framework is built as simply as possible and specifically suits my requirements and habit, or you could say it's &quot;opinionated&quot;.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>As an infra engineer, I first tried to build it in an <a href="https://hub.docker.com/_/node/tags">official node docker container</a> and there are so many of them! They are so large that I'm reluctant to keep as a dev env, and they mostly don't work (🌚) because (I'm guessing) some old dependency of Spectre css is depending on Python 2.7 which is on none of the official images.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Google Configuration Language, internally used by Google. Fun fact: infra engineers spend more time juggling configurations than writing actual code.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+    
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/dark_mode_support.md">Markdown source</a></i>
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
