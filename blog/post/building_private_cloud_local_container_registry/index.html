@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link id="spectre" rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        <script>
+            var dark_css_path = "/static/style/spectre_dark.min.css";
+            var light_css_path = "/static/style/spectre.min.css";
+        </script>
+        <script src="/static/script/color_theme.js"></script>
+        
+    <title>Building Private Cloud: Local Container Registry</title>
+
+    <style>
+        /* Initially hide the element */
+        .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h3:hover .hidden {
+          display: inline-block;
+        }
+        h4:hover .hidden {
+          display: inline-block;
+        }
+        h5:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="navbar">
+                <section class="navbar-section">
+                </section>
+                <section class="navbar-section">
+                    <label class="form-switch">
+                        <input type="checkbox" onclick="switch_color_theme();">
+                        <i class="form-icon"></i> <p id="moon"></p>
+                    </label>
+                </section>
+            </header>
+            <header class="column col-sm-12 col-md-10 col-8">
+                
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
+    <h1 class="heading-index">Building Private Cloud: Local Container Registry</h1>
+
+    <p class="text-gray">
+        <small>2024-03-16 04:47:45</small>
+        <span class="chip bg-secondary"><a href="/blog/category/default/" class="text-primary">default</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/k8s/" class="text-dark">k8s</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Docker/" class="text-dark">Docker</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Container/" class="text-dark">Container</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Registry/" class="text-dark">Registry</a></span>
+        
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p>In this short post we're going to cover my experience on setting up a local container registry that runs within my cluster. This greatly helps reduce the overall ingress traffic throughout the development and maintenance of applications on the cluster, and also removed the necessity of exposing image on public registries (e.g. <a href="https://hub.docker.com/">Docker Hub</a>) that force you to pay for better security.</p>
+<h4 id="options">Options&nbsp;<a class="hidden" tabindex="-1" href="#options" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Our requirement is simple: we want to host a container registry on the cluster to serve docker images within our local network; we should be able to push and pull image from the registry just like we use Docker Hub; performance, scalability and security should be good enough, but with lower priority. After all light-weight and convenience are the main purposes our home cluster. After some research, I found the following potential candidates:</p>
+<ul>
+<li><a href="https://goharbor.io/">Harbor</a>: Probably the most famous and trusted solution, with all the high-availability and security support.  it's probably a bit too heavy for me.</li>
+<li><a href="https://distribution.github.io/distribution/"><strong>CNCF Distribution</strong></a>: &quot;The Registry is a stateless, highly scalable server side application that stores and lets you distribute container images and other content&quot;. Aside from its confusing name, this is quite a decent solution for a self-hosted registry.</li>
+<li>Some other solutions: <a href="https://quay.io/">Quay.io</a>, <a href="https://github.com/SUSE/Portus">Portus</a>, <a href="https://docs.gitlab.com/ee/user/packages/container_registry/">Gitlab Container registry</a>, all supporting more than docker images and providing more features that might not be useful for me.</li>
+</ul>
+<p>I decided to use CNCF Distribution for obvious reasons, plus it seems to be <a href="https://github.com/distribution/distribution">actively maintained</a>.</p>
+<h4 id="deployment">Deployment&nbsp;<a class="hidden" tabindex="-1" href="#deployment" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>At the beginning I imagined it to be a pretty standard web service deployment, but later found out that there is a few twists to it:</p>
+<ul>
+<li>Obviously it is going to need persistent local storage support, so we'll need to utilize the setup we covered in <a href="/blog/post/building_private_cloud_storage_solution/#implementation">Storage Solution</a>, and we'll cover that in a bit.</li>
+<li>Most container registry client prefers SSL connection to the registry<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>, so we need to properly handle that.</li>
+<li>Do we need authentication support? Some solution might force that as a security feature.</li>
+</ul>
+<p>Long story short, here's the overall k8s deployment config:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry:2</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry-storage</span>
+              <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/var/lib/registry</span>
+          <span class="nt">ports</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+              <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5000</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry-storage</span>
+          <span class="nt">hostPath</span><span class="p">:</span>
+            <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/mnt/m2/shared/registry</span>
+            <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Directory</span>
+</code></pre>
+</div><p>For the persistent storage, we're creating a directory <code>registry</code> in the shared NFS dir <code>/mnt/m2/shared</code>. Since no node selector is specified, we're not guaranteed to run registry on the NFS server node. As a result we should make registry have open permission<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup> to guarantee accessibility from any node. With that, we can create a <code>hostPath</code> volume on that dir and mount it into the container to <code>/var/lib/registry</code> where the registry is going to store all the images and metadata.</p>
+<p>For network access, we'll first generate SSL certificates for the registry service:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ openssl req -x509 -newkey rsa:4096 -days <span class="m">365</span> -nodes -sha256 <span class="se">\</span>
+-keyout certs/tls.key -out certs/tls.crt <span class="se">\</span>
+-subj <span class="s2">&quot;/CN=cr.local.example.com&quot;</span> <span class="se">\</span>
+-addext <span class="s2">&quot;subjectAltName = DNS:cr.local.example.com&quot;</span>
+<span class="c1"># stdout:</span>
+Generating a RSA private key
+...........................................................................................................................................++++
+.............................................................++++
+writing new private key to <span class="s1">&#39;certs/tls.key&#39;</span>
+-----
+$ ls
+tls.key tls.crt
+</code></pre>
+</div><p>Replace <code>cr.local.example.com</code> with the domain name you want to use for the local container registry service. Then we add this pair of cert/key to k8s secrets to be used later by Treafik ingress.</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ kubectl create secret tls registry-certs --cert<span class="o">=</span>tls.crt --key<span class="o">=</span>tls.key
+</code></pre>
+</div><p>Finally we have the k8s definition for the <code>Service</code> and <code>IngressRoute</code>, together they will use the certs and serve the registry service within the cluster.</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ports</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5000</span>
+      <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">traefik.containo.us/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">IngressRoute</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">entryPoints</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+  <span class="nt">routes</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Rule</span>
+    <span class="nt">match</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Host(`cr.local.example.com`)</span>
+    <span class="nt">services</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5000</span>
+  <span class="nt">tls</span><span class="p">:</span>
+    <span class="nt">secretName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry-certs</span>
+</code></pre>
+</div><p>A few things to note:</p>
+<ul>
+<li>We use port 5000 all over the config because that's the default port for docker registry services.</li>
+<li>In Traefik <code>IngressRoute</code>, we provide the previously created secret so that Traefik can properly serve with SSL support.</li>
+<li>For the entry point, we need to create a new one for port 5000 called registry. Check <a href="/blog/post/building_private_cloud_local_dns/#is_that_all?">here</a> about how to add entry points.</li>
+</ul>
+<p>Since we're creating and using &quot;self-signed&quot; SSL certificates, we need to &quot;trust&quot; the cert from where you're trying to access it. The way of doing that varies by the OS/Distro you are running on your nodes.</p>
+<ul>
+<li>To access registry from docker client, add certs to <code>/etc/docker/certs.d/cr.local.example.com:5000/</code><sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup></li>
+<li>To access registry from k8s cluster, the certs need to be trusted by from the OS on each node. For Debian based OS (Ubuntu, RPiOS), copy <code>.crt</code> file to <code>/usr/local/share/ca-certificates/</code>, and run <code>sudo update-ca-certificates</code> to make it effective.</li>
+</ul>
+<p>Finally, we need to add <code>cr.local.example.com</code> to our local DNS server, so that it's accessible not only from within the cluster, but also within your home subnet. As we introduced in <a href="/blog/post/building_private_cloud_local_dns/#the_corefile">Local DNS</a>, use the following command to edit CoreDNS config file and add <code>cr.local.example.com</code> as a new host in <code>NodeHosts</code> block, and point to any node IP.</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ kubectl edit configmap coredns -n kube-system
+<span class="c1"># opens an editor:</span>
+apiVersion: v1
+data:
+  Corefile: <span class="p">|</span>
+  ...
+  NodeHosts: <span class="p">|</span>
+    <span class="m">192</span>.168.0.10 rpicm4n1
+    <span class="m">192</span>.168.0.11 rpicm4n2
+    <span class="m">192</span>.168.0.12 rpicm4n3
+    <span class="m">192</span>.168.0.13 rk1
+    <span class="m">192</span>.168.0.10 cr.local.example.com
+    ...
+</code></pre>
+</div><h4 id="usage">Usage&nbsp;<a class="hidden" tabindex="-1" href="#usage" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>The usage is fairly simple. Any images that we use in the cluster, we can re-tag it and push to the local registry:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>docker tag postgres cr.local.example.com:5000/postgres
+docker push cr.local.example.com:5000/postgres
+</code></pre>
+</div><p>In the deployment config, use the image form local registry instead of docker hub (or any public registry) version:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps.openshift.io/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DeploymentConfig</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="l l-Scalar l-Scalar-Plain">...</span>
+    <span class="l l-Scalar l-Scalar-Plain">spec</span><span class="p p-Indicator">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-example</span>
+        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cr.local.example.com:5000/postgres</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre>
+</div><p>For any publicly available images you should be able to use the local registry as a proxy (or cache) by setting up proxy configuration (<a href="https://distribution.github.io/distribution/about/configuration/#proxy">ref</a>). But for now I'm just manually managing all the images.</p>
+<p>According to my experience the image pulling speed is not significantly faster than pull from public registry, probably because my in-house network infrastructure is not in any way advanced. But it does greatly reduce the network bandwidth usage by a lot, especially when I'm constantly re-deploying images for development purposes.</p>
+<p>That's all for this post and hope you enjoyed :)</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>This is a conclusion from a tremendous amount of trial and failure 🥹.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>777 permission. I know this is very dangerous security wise, but it's entirely internally used, and I'll try to enforce a group based permission very soon.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>In my case I need to access from docker on my MacOS because I do all my work there, including building and managing images. To do that you should be able to open the <code>.crt</code> file using the Keychain Access program and trust it on OS level.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+    
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/building_private_cloud_local_container_registry.md">Markdown source</a></i>
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
