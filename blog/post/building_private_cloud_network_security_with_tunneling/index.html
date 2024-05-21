@@ -146,6 +146,7 @@ jupyter-server   ClusterIP   <span class="m">192</span>.168.97.149    &lt;none&g
 <p>There're 2 other things I probably need to work to make this more of a thoroughly working solution. One is that I'm <em>manually</em> checking the cluster IPs of my internal services and adding them to the tunnel rules. This will definitely break if I do any re-deployment, at which time I'll need to reconfigure the rules again. I should probably take advantage of some load-balancer resource on top of services, or form my maintenance practice, split configuration files of services and deployments, so that they get deployed separately.</p>
 <p>Another security measurement to take is to do network lockdown for the <code>cloudflared</code> deployment. Basically I can label my internal services to be publicly accessible or not, and restrict network traffic from <code>cloudflared</code> strictly to those services. This help tighten the access control of public traffic even if there's misconfiguration of worse things happening.</p>
 <p>Hope you enjoyed and until next time!</p>
+<p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/tag/Private%20Cloud/">here</a>.</em></p>
 <section class="footnotes">
 <ol>
 <li id="fn-1"><p>I've done this before when I'm working as an infra engineer for a startup, seems to be a pretty common practice.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
