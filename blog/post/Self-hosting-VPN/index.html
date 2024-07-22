@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link id="spectre" rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        <script>
+            var dark_css_path = "/static/style/spectre_dark.min.css";
+            var light_css_path = "/static/style/spectre.min.css";
+        </script>
+        <script src="/static/script/color_theme.js"></script>
+        
+    <title>Self-hosting VPN</title>
+
+    <style>
+        /* Initially hide the element */
+        .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h3:hover .hidden {
+          display: inline-block;
+        }
+        h4:hover .hidden {
+          display: inline-block;
+        }
+        h5:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="navbar">
+                <section class="navbar-section">
+                </section>
+                <section class="navbar-section">
+                    <label class="form-switch">
+                        <input type="checkbox" onclick="switch_color_theme();">
+                        <i class="form-icon"></i> <p id="moon"></p>
+                    </label>
+                </section>
+            </header>
+            <header class="column col-sm-12 col-md-10 col-8">
+                
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
+    <h1 class="heading-index">Self-hosting VPN</h1>
+
+    <p class="text-gray">
+        <small>2024-07-21 20:46:52</small>
+        <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/VPN/" class="text-dark">VPN</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/V2Ray/" class="text-dark">V2Ray</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/GFW/" class="text-dark">GFW</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Network/" class="text-dark">Network</a></span>
+        
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <blockquote>
+<p>TL;DR This blog is mainly talking about self-hosting proxy service to visit blocked sites and services by GFW from mainland China, <strong>not</strong> talking about general network proxy and VPN concept.</p>
+</blockquote>
+<p>From my earliest days in US I have had the need of a 梯子<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> against the <a href="https://en.wikipedia.org/wiki/Great_Firewall">GFW</a>, as I started to heavily rely on blocked services like Gmail, Google Map, Github etc. With the help from my collage roommate, I set up a simple solution with <a href="https://en.wikipedia.org/wiki/Shadowsocks">Shadowsocks</a> on an AWS EC2 instance and wrote quite a detailed blog about it over 9 years ago.</p>
+<p>At the moment it was very popular topic among Chinese students abroad about which provider (or 机场<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>) is the most stable and fast, or which tech and cloud provider combination is the cheapest solution (if you're a <em>NeRd</em> doing self-hosting). There were numerous blogs and communities about that and my solution was nowhere near novel or most economical: it used naked IP address with no traffic camouflage and need to replace VM and IP every few months. With the latest development of both GFW and VPN technology, I have been updating my solution over the past years and I believe it warrants a new blog.</p>
+<h4 id="v2ray">V2Ray&nbsp;<a class="hidden" tabindex="-1" href="#v2ray" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>The core technology of my current solution is <a href="https://www.v2fly.org/guide/start.html">V2Ray</a> under the <a href="https://www.v2ray.com/index.html">Project V</a>, which is a set of network protocols and their implementations. <a href="https://github.com/v2fly">V2Fly</a> is the community-driven edition of V2Ray with some possibly messy history that I'm not clear about. <a href="https://www.v2fly.org/guide/start.html">V2Fly official site</a> has some basic setup instructions, but I mostly refer to the Chinese version of <a href="https://guide.v2fly.org/en_US/">V2Ray Beginner's Guide</a> as it covers not only the basics, but also into many possible detailed and complex solutions, one of which is the foundation of my current solution.</p>
+<p>The doc has a comprehensive section for <a href="https://guide.v2fly.org/en_US/#frequent-questions-q-a">FAQ</a> about V2Ray, but I'll just highlight a few points here:</p>
+<ul>
+<li>V2Ray takes a symmetric design, i.e. the client and server runs same software with same architecture, the functionality is fully determined by the configuration used.</li>
+<li>VMess protocol is the core protocol used in V2Ray across GFW, it only takes UUID for authentication, which is far more secure compare to passwords.</li>
+<li>V2Ray is able to directly run on most OS, but for common use cases it's more convenient to get a wrapped client.<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup></li>
+</ul>
+<p>The simplest possible configuration is like the following:</p>
+<p><p style="text-align: center"><img src="/static/image/basic_v2ray.png" alt="basic_v2ray" style="width: 100%"/><em class="text-gray">Basic setup</em></p></p>
+<p>Some key points to notice:</p>
+<ul>
+<li>V2Ray configuration mainly consists of 2 sections: <code>inbounds</code> and <code>outbounds</code>. In this basic example, <a href="https://guide.v2fly.org/en_US/basics/vmess.html#client-side-configuration">client side config</a> has inbound <a href="https://en.wikipedia.org/wiki/SOCKS">SOCKS</a> request from <code>localhost:1080</code> and outbound VMess request to <code>10.12.23.34:16823</code>, while <a href="https://guide.v2fly.org/en_US/basics/vmess.html#server-side-configuration">server side config</a> has inbound VMess request on port <code>16823</code> and outbound to anywhere (<code>freedom</code>).</li>
+<li>The reason there's an extra layer on client side (the &quot;system proxy&quot; in the graph) is because most OS have a system level network manager to control overall proxy behavior<sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup> and it usually support SOCKS protocol. This makes V2Ray works properly with client-side environment and unify all types of request under one protocol for proxy.</li>
+<li>The connection across GFW is on naked IP address, over VMess protocol and on an uncommon port (16823). Although VMess encrypts the data, all the public information easily makes it suspicious to GFW and automatically gets the IP address blocked, not even mentioning the more and more intelligent GFW technologies. This is very far from a stable solution.</li>
+</ul>
+<h4 id="websocket_+_tls_+_web">WebSocket + TLS + Web&nbsp;<a class="hidden" tabindex="-1" href="#websocket_+_tls_+_web" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Although GFW has become very advanced and intelligent over the past years, overall it still works on a blacklist logic instead of whitelist. For most of the foreign sites and services (especially the new ones) it allows the traffic by default, monitors and runs analysis over the traffic, and blocks it (programmatically or manually) only when it decides that the site is no good.<sup class="footnote-ref" id="fnref-5"><a href="#fn-5">5</a></sup></p>
+<p>Given that, our approach is to cover the traffic in a way that it's indistinguishable from a normal and random website minding its own business. We will be safe as long as it's not picked out by the automatic analysis and block procedure.</p>
+<p>The solution is covered in <a href="https://guide.v2fly.org/en_US/advanced/wss_and_web.html#configuration-example">this section</a> of V2Ray Beginner's Guide with all the needed configs, and it looks like this:</p>
+<p><p style="text-align: center"><img src="/static/image/tls_v2ray.png" alt="tls_v2ray" style="width: 100%"/><em class="text-gray">WebSocket + TLS + Web</em></p></p>
+<p>For the most important connection across GFW, client side sends the VMess request wrapped in WebSocket and TLS. With a properly configured domain name and valid SSL certificate, the traffic looks perfectly legitimate as an HTTPS request that happens all the time.</p>
+<p>To achieve this we need an extra web server (could be Nginx, Caddy, Apache or whatever) that does the SSL termination. And since VMess is not a common recognized protocol we need the extra wrapping of WebSocket to work with these web servers. It also requires knowledge of setting up web server, maintaining a public domain<sup class="footnote-ref" id="fnref-6"><a href="#fn-6">6</a></sup> name and proper certificates<sup class="footnote-ref" id="fnref-7"><a href="#fn-7">7</a></sup> for that. Although adding a bunch of complexity, this is by far one of the most stable solutions out there, and I have been using this for over 5 years.</p>
+<h4 id="cloud_native_self-hosting">Cloud Native Self-hosting&nbsp;<a class="hidden" tabindex="-1" href="#cloud_native_self-hosting" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>As you may have read, I've been building my <a href="/blog/tag/Private%20Cloud/">private cloud</a> from early this year, and V2Ray has been a core service to be supported in order to get rid of any public cloud cost. This section is to cover any modification I made to the previous solution to integrate seamlessly with my private cloud infra.</p>
+<p><p style="text-align: center"><img src="/static/image/current_v2ray.png" alt="current_v2ray" style="width: 100%"/><em class="text-gray">Current setup on the cluster</em></p></p>
+<p>As shown in the graph, I'm using the <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare tunnel</a> to replace the web server in the last section. Obviously the Cloudflare reverse proxy service is able to handle the TLS + WebSocket traffic and properly does SSL termination. As designed, the tunnel avoid the need to somehow expose local network for direct access, greatly increases security for self-hosting from home. Note that you can host multiple services through the tunnel, so a sub-domain prefix is needed for the V2Ray service.</p>
+<p>The following is the basic k8s config for the V2Ray deployment and service:</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2fly/v2fly-core</span>
+          <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;v2ray&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;run&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;-c&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;/etc/v2ray/config.json&quot;</span><span class="p p-Indicator">]</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">config-volume</span>
+              <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/etc/v2ray</span>
+          <span class="nt">ports</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+              <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10000</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">config-volume</span>
+          <span class="nt">hostPath</span><span class="p">:</span>
+            <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/host-path-to/v2ray</span>
+            <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Directory</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ports</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">10000</span>
+      <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
+</code></pre>
+</div><p>Note that the <code>v2fly/v2fly-core</code> docker image is good for all the previous solutions if you prefer a containerized way, both on client and server side. Running that with just docker installed is as easy as:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code><span class="c1"># running on host port 10000</span>
+docker run -d -p <span class="m">10000</span>:10000 -v /host-path-to-config-dir:/etc/v2ray <span class="se">\</span>
+    v2fly/v2fly-core
+</code></pre>
+</div><p>For specific ways to setup and configure Cloudflare tunnel, please refer to my <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">previous post</a>.</p>
+<h4 id="conclusion">Conclusion&nbsp;<a class="hidden" tabindex="-1" href="#conclusion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>This post (sort of) concludes the history and current status of my journey of fighting against GFW in the recent years, and I hope this will help you in some way.</p>
+<p>Some following works include some possible upgrade to &quot;more advanced technology&quot; like <a href="https://guide.v2fly.org/advanced/h2.html">HTTP/2</a> or adding <a href="https://guide.v2fly.org/advanced/cdn.html">CDN</a>, ans also exploring some fancy features like <a href="https://guide.v2fly.org/advanced/traffic.html">enabling traffic statistics</a> or <a href="https://guide.v2fly.org/app/balance.html#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1">load balancing</a> when there's actually more traffic.</p>
+<p>Hope you enjoyed this post and until next time :)</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>&quot;ladder&quot; in Chinese, cryptology for VPN service against GFW.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>&quot;airport&quot; in Chinese, for-profit service providing abroad servers over open protocols like shadowsocks.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>I've been using <a href="https://www.shadowrocket.vip/">Shadowrocket</a> for most of my devices. It costs $3 for a one-time purchase and can be used across all Apple environments. For Windows/Android client consider some options <a href="https://www.v2fly.org/en_US/awesome/tools.html#third-party-gui-clients">here</a> in the official docs. For linux you can always just run v2fly-core directly or in docker as mentioned later in this post.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p>e.g. For MacOS and iOS, check Proxies config in the details of your connecting network.<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
+<li id="fn-5"><p>This is of course an over simplification of how GFW works. I'm sure it has partial whitelist mechanism (default block) on some IP range or service provider, but that's out of scope of this post.<a href="#fnref-5" class="footnote">&#8617;</a></p></li>
+<li id="fn-6"><p>Explore options like <a href="https://www.godaddy.com/">GoDaddy</a> or <a href="https://domains.squarespace.com/">Squrespace</a><a href="#fnref-6" class="footnote">&#8617;</a></p></li>
+<li id="fn-7"><p>The most common way is to get one from <a href="https://letsencrypt.org/">Let's Encrypt</a>, although many modern web server (like Caddy) can handle that for you.<a href="#fnref-7" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+    
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/Self-hosting-VPN.md">Markdown source</a></i>
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
