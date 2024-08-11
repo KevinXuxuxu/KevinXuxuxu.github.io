@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link id="spectre" rel="stylesheet" href="/static/style/spectre.min.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        <script>
+            var dark_css_path = "/static/style/spectre_dark.min.css";
+            var light_css_path = "/static/style/spectre.min.css";
+        </script>
+        <script src="/static/script/color_theme.js"></script>
+        <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
+    <title>cosmo: 3D Graphics Engine in Terminal</title>
+
+    <style>
+        /* Initially hide the element */
+        .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h3:hover .hidden {
+          display: inline-block;
+        }
+        h4:hover .hidden {
+          display: inline-block;
+        }
+        h5:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="navbar">
+                <section class="navbar-section">
+                </section>
+                <section class="navbar-section">
+                    <label class="form-switch">
+                        <input type="checkbox" onclick="switch_color_theme();">
+                        <i class="form-icon"></i> <p id="moon"></p>
+                    </label>
+                </section>
+            </header>
+            <header class="column col-sm-12 col-md-10 col-8">
+                
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
+    <h1 class="heading-index">cosmo: 3D Graphics Engine in Terminal</h1>
+
+    <p class="text-gray">
+        <small>2024-08-07 04:26:15</small>
+        <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Computer Graphics/" class="text-dark">Computer Graphics</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Ray Tracing/" class="text-dark">Ray Tracing</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Rust/" class="text-dark">Rust</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Terminal/" class="text-dark">Terminal</a></span>
+        
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p><p style="text-align: center"><img src="/static/image/cosmo_panorama.gif" alt="cosmo_panorama" style="width: 100%"/><br><em class="text-gray">3D objects rendered in 60FPS</em></p></p>
+<p>The idea came from <a href="https://www.a1k0n.net/2011/07/20/donut-math.html">an amazing work</a> by <a href="https://www.a1k0n.net/">Andy Sloane</a><sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> where he wrote a compact C code (shaped like a flat donut) that renders a spinning donut in terminal. Multiple people did videos about it and it was a blast.</p>
+<p>The thing that particularly interest me is that it should not be hard to create a 3D graphics engine in terminal. With limited resolution, performance should not be a bottleneck for doing thing the easiest way<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>. I'm pretty confident that I can nail it with whatever I still remember from my collage class on computer graphics.</p>
+<p>Initially I was doing it in Python, specifically Numpy for the vector math part. It didn't take too long for me to realize that vanilla Numpy computation is too slow for the framerate I desire, and it quickly get obviously worse when more steps is added to the rendering. So I decided to move to <a href="https://doc.rust-lang.org/book/title-page.html">Rust</a>, which I happened to want to pick up recently, and as early as possible.</p>
+<p>For this post I will focus on how to build the most basic parts so that we have a decent initial result: a spinning cube like this:
+<p style="text-align: center"><img src="/static/image/cosmo_basic.gif" alt="cosmo_basic" style="width: 50%"/><br><em class="text-gray">Spinning Cube™</em></p></p>
+<h4 id="terminal_rendering">Terminal Rendering&nbsp;<a class="hidden" tabindex="-1" href="#terminal_rendering" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>The idea is very simple: our &quot;player&quot; should have a fixed grid of <code>char</code>, whose content will be updated every frame, and we want to refresh the screen with these characters every frame. So here it is:</p>
+<div class="highlight">
+    <pre class="code" data-lang="rust"><span></span><code><span class="k">struct</span> <span class="nc">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">w</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">h</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">a</span>: <span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">dt</span>: <span class="kt">f32</span><span class="p">,</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">new</span><span class="p">(</span><span class="n">w</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"> </span><span class="n">h</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"> </span><span class="n">fr</span>: <span class="kt">usize</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nc">Self</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="fm">vec!</span><span class="p">[</span><span class="sc">&#39; &#39;</span><span class="p">;</span><span class="w"> </span><span class="n">w</span><span class="p">];</span><span class="w"> </span><span class="n">h</span><span class="p">];</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">fr</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">f32</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">Player</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">w</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre>
+</div><p>Note that we also have a <code>dt</code> attribute, which is computed from the framerate, It will become handy later when we involve moving objects.</p>
+<p>The first problem (but quite an easy one) is how to display &quot;moving things&quot; on terminal with fixed framerate? The answer is that you need some particular control sequences from <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI escape codes</a> which can manipulate the cursor on terminal screen. Specifically we need the following two<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>:</p>
+<ul>
+<li><code>\x1B[F</code> moves the cursor up a line.</li>
+<li><code>\x1B[K</code> will clear the current line and cursor will be in the front.</li>
+</ul>
+<p>With these 2 characters, we can &quot;reprint&quot; our screen (given a fixed size we want to display) at each frame and create a moving effect. So the render method should be like this:</p>
+<div class="highlight">
+    <pre class="code" data-lang="rust"><span></span><code><span class="k">const</span><span class="w"> </span><span class="n">CURSOR_UP</span>: <span class="kp">&amp;</span><span class="kt">str</span> <span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\x1B</span><span class="s">[F&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="k">const</span><span class="w"> </span><span class="n">CLEAR_LINE</span>: <span class="kp">&amp;</span><span class="kt">str</span> <span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\x1B</span><span class="s">[K&quot;</span><span class="p">;</span><span class="w"></span>
+
+<span class="c1">// ...</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">render</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// self.h + 1 if printing stats.</span>
+<span class="w">        </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CURSOR_UP</span><span class="p">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">h</span><span class="p">));</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="n">l</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">&amp;</span><span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="kd">let</span><span class="w"> </span><span class="n">l_str</span>: <span class="nb">String</span> <span class="o">=</span><span class="w"> </span><span class="n">l</span><span class="p">.</span><span class="n">into_iter</span><span class="p">().</span><span class="n">collect</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;{}{}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">CLEAR_LINE</span><span class="p">,</span><span class="w"> </span><span class="n">l_str</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre>
+</div><p>Another thing to notice is that in order to get stable framerate (e.g. 24 FPS) we need to track the time taken to render each frame, and take that off from <code>dt</code> to get the actual wait time. That correspond to the load of the graphics engine. When the rendering gets more complex there might not be enough time to complete rendering within one frame, and the framerate will start to drop.</p>
+<p>We will use the <a href="https://doc.rust-lang.org/std/time/index.html">std::time</a> standard lib to achieve this, and (optionally) print out live performance stats during rendering. The play method also takes in a <code>duration</code> in seconds, and stops the play after that time:</p>
+<div class="highlight">
+    <pre class="code" data-lang="rust"><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">thread</span><span class="p">;</span><span class="w"></span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">time</span>::<span class="n">Duration</span><span class="p">;</span><span class="w"></span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">time</span>::<span class="n">Instant</span><span class="p">;</span><span class="w"></span>
+
+<span class="c1">// ...</span>
+<span class="k">impl</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">update</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* TODO */</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">play</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">duration</span>: <span class="kt">f32</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">loop</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="kd">let</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Instant</span>::<span class="n">now</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="bp">self</span><span class="p">.</span><span class="n">render</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="bp">self</span><span class="p">.</span><span class="n">update</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="kd">let</span><span class="w"> </span><span class="n">compute_t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">start</span><span class="p">.</span><span class="n">elapsed</span><span class="p">().</span><span class="n">as_secs_f32</span><span class="p">();</span><span class="w"></span>
+<span class="w">            </span><span class="kd">let</span><span class="w"> </span><span class="n">wait_t</span>: <span class="kt">f32</span> <span class="o">=</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">dt</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">compute_t</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="bp">self</span><span class="p">.</span><span class="n">dt</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">compute_t</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="mf">0.</span><span class="w"></span>
+<span class="w">            </span><span class="p">};</span><span class="w"></span>
+<span class="w">            </span><span class="cm">/*</span>
+<span class="cm">            // Print stats</span>
+<span class="cm">            println!(</span>
+<span class="cm">                &quot;{}compute_time: {} wait_time: {}&quot;,</span>
+<span class="cm">                CLEAR_LINE, compute_t, wait_t</span>
+<span class="cm">            );</span>
+<span class="cm">            */</span><span class="w"></span>
+<span class="w">            </span><span class="n">t</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">dt</span><span class="p">;</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">duration</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">break</span><span class="w"> </span><span class="p">};</span><span class="w"></span>
+<span class="w">            </span><span class="n">thread</span>::<span class="n">sleep</span><span class="p">(</span><span class="n">Duration</span>::<span class="n">from_secs_f32</span><span class="p">(</span><span class="n">wait_t</span><span class="p">));</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre>
+</div><p>Note that we have an <code>update</code> function as TODO, which will be be the core part of our graphics engine, because it not only update the objects themselves, but also update all the &quot;pixels&quot; (or &quot;characters&quot;) of our screen.</p>
+<h4 id="ray_tracing">Ray Tracing&nbsp;<a class="hidden" tabindex="-1" href="#ray_tracing" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Here comes the core part of the project: ray tracing! The basic reasoning behind this is that when we simulate a scene, all the light rays going into our eyes (or a camera) are <strong>reversible</strong>. Given that, we can trace all the light rays from the eye to objects (and possibly reflected to something else) and compute the color we're supposed to see from that ray.</p>
+<p>As we're just rendering in terminal, we only care about the intensity (or luminance) of the object, also for the simpler version we don't do any reflection and only compute the color at the intersection point (will cover that later). So the most important problem is how do we get the intersection of a ray with an object?</p>
+<p><p style="text-align: center"><img src="/static/image/intersection.png" alt="intersection" style="width: 50%"/><br><em class="text-gray">Ray Triangle Intersection</em></p></p>
+<p>The first thing we need to support is triangle. It's the basic shape to form a cube, and with small enough triangle you can simulate any object. You can find tons of references online (e.g. <a href="https://courses.cs.washington.edu/courses/csep557/09sp/lectures/triangle_intersection.pdf">this nice doc</a> from UW), but the basic solution is like this:</p>
+<ul>
+<li>Light ray represented by origin <span class="math">\(P\)</span> and direction <span class="math">\(\vec{d}\)</span>:
+$$
+R(t) = P + t\vec{d}
+$$</li>
+<li>Plane has many ways to represent, we're given the 3 points of a plane (the triangle) <span class="math">\(A\)</span>, <span class="math">\(B\)</span> and <span class="math">\(C\)</span>, and we compute the normal vector <span class="math">\(\vec{n}\)</span>:
+$$
+\vec{n} = \frac{(B-A)\times(C-A)}{|(B-A)\times(C-A)|}
+$$
+The plane is then represented by this equation:
+$$
+\vec{n}\cdot X = \vec{n}\cdot A
+$$</li>
+</ul>
+<p>Note that the normal vector is decided by the orientation of the 3 points: it points up when <span class="math">\(A\)</span>, <span class="math">\(B\)</span> and <span class="math">\(C\)</span> is in counter-clockwise order (<a href="https://en.wikipedia.org/wiki/Right-hand_rule">right-hand rule</a>). We use the direction of normal vector to define the &quot;positive side&quot; of the triangle, and reject intersection from the &quot;negative side&quot;. That is done by checking if <span class="math">\(\vec{n}\cdot\vec{d} > 0\)</span>.</p>
+<p>Solving for the intersection by replacing <span class="math">\(X\)</span> in plane equation with <span class="math">\(R(t)\)</span>:</p>
+<div class="math">$$
+\displaylines {
+    \vec{n}\cdot(P + t\vec{d}) = \vec{n}\cdot A\\
+    t = \frac{\vec{n}\cdot(A-P)}{\vec{n}\cdot\vec{d}}
+}
+$$</div>
+<p>We're half way there. As long as the ray is not parallel to the plane, there must be an intersection. But we only care about the intersection when it's within the triangle, so we need to check for that.
+<p style="text-align: center"><img src="/static/image/in_triangle.png" alt="in_triangle" style="width: 65%"/><br><em class="text-gray">Check if Q is in triangle</em></p>
+The approach is as follows: If the point is <span class="math">\(Q\)</span>, take any edge vector by the counter-clockwise ordering of the triangle, e.g. <span class="math">\(\overrightarrow{AB}\)</span>, we have</p>
+<div class="math">$$
+\displaylines {
+    (\overrightarrow{AB}\times\overrightarrow{AQ})\cdot\vec{n} < 0 \Rightarrow Q \text{ is on the right side of } \overrightarrow{AB} \\
+    \Rightarrow Q \text{ is outside of } ABC
+}
+$$</div>
+<p>If we check that for all 3 edge vectors of the triangle we'll get the answer.</p>
+<p>Putting everything together, we come up with a very simple implementation of a triangle type:</p>
+<div class="highlight">
+    <pre class="code" data-lang="rust"><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">glam</span>::<span class="n">Vec3</span><span class="p">;</span><span class="w"></span>
+
+<span class="k">struct</span> <span class="nc">Triangle</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">a</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">b</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">c</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="n">n</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">Triangle</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">new</span><span class="p">(</span><span class="n">a</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"> </span><span class="n">b</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"> </span><span class="n">c</span>: <span class="nc">Vec3</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nc">Self</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="p">).</span><span class="n">cross</span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">a</span><span class="p">).</span><span class="n">normalize</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="n">Triangle</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">intersect</span><span class="p">(</span><span class="o">&amp;</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">p</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"> </span><span class="n">d</span>: <span class="nc">Vec3</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="nb">Option</span><span class="o">&lt;</span><span class="n">Vec3</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">n_dot_d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">d</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="n">n_dot_d</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mf">0.</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="c1">// Check for positive side</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nb">None</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Solve for Q</span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">n_dot_d</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">d</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Check if Q is in triangle</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">b</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="p">).</span><span class="n">cross</span><span class="p">(</span><span class="n">q</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="p">).</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.</span><span class="w"></span>
+<span class="w">            </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">c</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">b</span><span class="p">).</span><span class="n">cross</span><span class="p">(</span><span class="n">q</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">b</span><span class="p">).</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.</span><span class="w"></span>
+<span class="w">            </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">c</span><span class="p">).</span><span class="n">cross</span><span class="p">(</span><span class="n">q</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">c</span><span class="p">).</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nb">None</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="nb">Some</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre>
+</div><p>As we're getting into the computation, we need help from some library specialized for 3D geometry. We'll use <a href="https://crates.io/crates/glam">glam</a><sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup>, a crate that provides 3D vector types and related operations with decent performance optimizations.</p>
+<p>As this is already a lengthy post, I'll stop here and continue in following posts, where I'll talk about the rest of the pieces to achieve a spinning cube: orthographic camera, directional lighting and rotation. All the code can be found <a href="https://github.com/KevinXuxuxu/cosmo/tree/main/rust_lite/src">here</a> and see you next time!</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>He also did a lot of interesting things with 3D rendering and embedded environments, please check him out.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>Which comes as a surprise that performance is still important in some sense in later part of this project.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>You can find them in the <strong>CSI (Control Sequence Introducer) sequences</strong> section in the <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">wiki page</a><a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p>There is a variety of other libraries e.g. <a href="https://crates.io/crates/ultraviolet">ultraviolet</a> and <a href="https://crates.io/crates/nalgebra">nalgebra</a>. The reason for choosing glam is that it seems to be optimized for 3D graphics and is actively being maintained.<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+    
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/cosmo:-3D-Graphics-Engine-in-Terminal.md">Markdown source</a></i>
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>

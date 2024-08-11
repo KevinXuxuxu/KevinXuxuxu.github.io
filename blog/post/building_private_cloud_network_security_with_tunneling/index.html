@@ -10,6 +10,8 @@
             var light_css_path = "/static/style/spectre.min.css";
         </script>
         <script src="/static/script/color_theme.js"></script>
+        <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         
     <title>Building Private Cloud: Network Security with Tunneling</title>
 
@@ -88,7 +90,7 @@
 <li>You don't even need a stable public IP to host service! I know quite some ISPs doesn't guarantee stable IP address (or at least without an expensive premium) so it would come really handy if that's the case. <sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup></li>
 <li>You could get some sort of access monitoring and statistics from the tunnel service, if you bother to do the research and set that up.</li>
 </ul>
-<p><p style="text-align: center"><img src="/static/image/cf_tunnel.png" alt="cloudflare_tunnel_arch" style="width: 100%"/><em class="text-gray">Simple Architecture of Cloudflare Tunnel</em></p></p>
+<p><p style="text-align: center"><img src="/static/image/cf_tunnel.png" alt="cloudflare_tunnel_arch" style="width: 100%"/><br><em class="text-gray">Simple Architecture of Cloudflare Tunnel</em></p></p>
 <p>General setup is pretty clearly documented in <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">the official docs</a>. For my use case, I'm using a simple deployment (not even with a service because it's not necessary) to run the client side <code>cloudflared</code> in my cluster, which has an official docker image that works perfectly fine.</p>
 <div class="highlight">
     <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>

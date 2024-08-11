@@ -10,6 +10,8 @@
             var light_css_path = "/static/style/spectre.min.css";
         </script>
         <script src="/static/script/color_theme.js"></script>
+        <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         
     <title>Ramp Up on NanoGPT</title>
 
@@ -130,9 +132,9 @@ iter <span class="m">2</span>: loss <span class="m">10</span>.9129, <span class=
 <li>(8, 8, 128), 8.08M, (128, 12) -&gt; 2424M</li>
 <li>(8, 8, 128), 8.08M, (256, 12) -&gt; 3924M</li>
 <li>(8, 8, 128), 8.08M, (512, 12) -&gt; 6836M (might not reproduce as it approach my gpu limit)</li>
-<li>(10, 10, 500), 50.32M, (256, 12) -&gt; 5760M</li>
+<li>(10, 10, 500), 50.32M, (256, 12) -&gt; 5760M
+Note that the dataset used for the above experiments are all open web test, as the shakespeare dataset is too small.</li>
 </ul>
-<p>Note that the dataset used for the above experiments are all open web test, as the shakespeare dataset is too small.</p>
 <p>If we assume <code>x</code> is the number of parameters (in millions), <code>y</code> is the number of datapoint in a batch (block_size * batch_size) and <code>z</code> is the VRAM it takes to train (in MB), here is a very simple fit from my data:</p>
 <div class="highlight">
     <pre class="code" data-lang="Python"><span></span><code><span class="mf">42.65</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">0.93</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mf">766.86</span> <span class="o">=</span> <span class="n">z</span>
