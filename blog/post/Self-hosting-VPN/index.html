@@ -5,7 +5,12 @@
 
         <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
         <link rel="stylesheet" href="/static/style/pygments_style.css">
+
         <script src="/static/script/color_theme.js"></script>
+        <script>
+            init_color_theme();
+        </script>
+
         <script id="MathJax-script" async
           src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         
@@ -41,7 +46,7 @@
                 </section>
                 <section class="navbar-section">
                     <label class="form-switch">
-                        <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();">
+                        <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
                         <i class="form-icon"></i> <p id="moon"></p>
                     </label>
                 </section>
@@ -90,7 +95,7 @@
 <li>V2Ray is able to directly run on most OS, but for common use cases it's more convenient to get a wrapped client.<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup></li>
 </ul>
 <p>The simplest possible configuration is like the following:</p>
-<p><p style="text-align: center"><img src="/static/image/basic_v2ray.png" alt="basic_v2ray" style="width: 100%"/><br><em class="text-gray">Basic setup</em></p></p>
+<p><p style="text-align: center"><img loading="lazy" src="/static/image/basic_v2ray.png" alt="basic_v2ray" style="width: 100%"/><br><em class="text-gray">Basic setup</em></p></p>
 <p>Some key points to notice:</p>
 <ul>
 <li>V2Ray configuration mainly consists of 2 sections: <code>inbounds</code> and <code>outbounds</code>. In this basic example, <a href="https://guide.v2fly.org/en_US/basics/vmess.html#client-side-configuration">client side config</a> has inbound <a href="https://en.wikipedia.org/wiki/SOCKS">SOCKS</a> request from <code>localhost:1080</code> and outbound VMess request to <code>10.12.23.34:16823</code>, while <a href="https://guide.v2fly.org/en_US/basics/vmess.html#server-side-configuration">server side config</a> has inbound VMess request on port <code>16823</code> and outbound to anywhere (<code>freedom</code>).</li>
@@ -101,12 +106,12 @@
 <p>Although GFW has become very advanced and intelligent over the past years, overall it still works on a blacklist logic instead of whitelist. For most of the foreign sites and services (especially the new ones) it allows the traffic by default, monitors and runs analysis over the traffic, and blocks it (programmatically or manually) only when it decides that the site is no good.<sup class="footnote-ref" id="fnref-5"><a href="#fn-5">5</a></sup></p>
 <p>Given that, our approach is to cover the traffic in a way that it's indistinguishable from a normal and random website minding its own business. We will be safe as long as it's not picked out by the automatic analysis and block procedure.</p>
 <p>The solution is covered in <a href="https://guide.v2fly.org/en_US/advanced/wss_and_web.html#configuration-example">this section</a> of V2Ray Beginner's Guide with all the needed configs, and it looks like this:</p>
-<p><p style="text-align: center"><img src="/static/image/tls_v2ray.png" alt="tls_v2ray" style="width: 100%"/><br><em class="text-gray">WebSocket + TLS + Web</em></p></p>
+<p><p style="text-align: center"><img loading="lazy" src="/static/image/tls_v2ray.png" alt="tls_v2ray" style="width: 100%"/><br><em class="text-gray">WebSocket + TLS + Web</em></p></p>
 <p>For the most important connection across GFW, client side sends the VMess request wrapped in WebSocket and TLS. With a properly configured domain name and valid SSL certificate, the traffic looks perfectly legitimate as an HTTPS request that happens all the time.</p>
 <p>To achieve this we need an extra web server (could be Nginx, Caddy, Apache or whatever) that does the SSL termination. And since VMess is not a common recognized protocol we need the extra wrapping of WebSocket to work with these web servers. It also requires knowledge of setting up web server, maintaining a public domain<sup class="footnote-ref" id="fnref-6"><a href="#fn-6">6</a></sup> name and proper certificates<sup class="footnote-ref" id="fnref-7"><a href="#fn-7">7</a></sup> for that. Although adding a bunch of complexity, this is by far one of the most stable solutions out there, and I have been using this for over 5 years.</p>
 <h4 id="cloud_native_self-hosting">Cloud Native Self-hosting&nbsp;<a class="hidden" tabindex="-1" href="#cloud_native_self-hosting" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>As you may have read, I've been building my <a href="/blog/tag/Private%20Cloud/">private cloud</a> from early this year, and V2Ray has been a core service to be supported in order to get rid of any public cloud cost. This section is to cover any modification I made to the previous solution to integrate seamlessly with my private cloud infra.</p>
-<p><p style="text-align: center"><img src="/static/image/current_v2ray.png" alt="current_v2ray" style="width: 100%"/><br><em class="text-gray">Current setup on the cluster</em></p></p>
+<p><p style="text-align: center"><img loading="lazy" src="/static/image/current_v2ray.png" alt="current_v2ray" style="width: 100%"/><br><em class="text-gray">Current setup on the cluster</em></p></p>
 <p>As shown in the graph, I'm using the <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare tunnel</a> to replace the web server in the last section. Obviously the Cloudflare reverse proxy service is able to handle the TLS + WebSocket traffic and properly does SSL termination. As designed, the tunnel avoid the need to somehow expose local network for direct access, greatly increases security for self-hosting from home. Note that you can host multiple services through the tunnel, so a sub-domain prefix is needed for the V2Ray service.</p>
 <p>The following is the basic k8s config for the V2Ray deployment and service:</p>
 <div class="highlight">

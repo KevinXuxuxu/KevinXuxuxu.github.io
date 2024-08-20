@@ -5,7 +5,12 @@
 
         <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
         <link rel="stylesheet" href="/static/style/pygments_style.css">
+
         <script src="/static/script/color_theme.js"></script>
+        <script>
+            init_color_theme();
+        </script>
+
         <script id="MathJax-script" async
           src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         
@@ -41,7 +46,7 @@
                 </section>
                 <section class="navbar-section">
                     <label class="form-switch">
-                        <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();">
+                        <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
                         <i class="form-icon"></i> <p id="moon"></p>
                     </label>
                 </section>
@@ -74,12 +79,12 @@
                 <div class="column col-sm-12 col-md-10 col-8">
                     
     
-    <p><p style="text-align: center"><img src="/static/image/cosmo_panorama.gif" alt="cosmo_panorama" style="width: 100%"/><br><em class="text-gray">3D objects rendered in 60FPS</em></p></p>
+    <p><p style="text-align: center"><img loading="lazy" src="/static/image/cosmo_panorama.gif" alt="cosmo_panorama" style="width: 100%"/><br><em class="text-gray">3D objects rendered in 60FPS</em></p></p>
 <p>The idea came from <a href="https://www.a1k0n.net/2011/07/20/donut-math.html">an amazing work</a> by <a href="https://www.a1k0n.net/">Andy Sloane</a><sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> where he wrote a compact C code (shaped like a flat donut) that renders a spinning donut in terminal. Multiple people did videos about it and it was a blast.</p>
 <p>The thing that particularly interest me is that it should not be hard to create a 3D graphics engine in terminal. With limited resolution, performance should not be a bottleneck for doing thing the easiest way<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>. I'm pretty confident that I can nail it with whatever I still remember from my collage class on computer graphics.</p>
 <p>Initially I was doing it in Python, specifically Numpy for the vector math part. It didn't take too long for me to realize that vanilla Numpy computation is too slow for the framerate I desire, and it quickly get obviously worse when more steps is added to the rendering. So I decided to move to <a href="https://doc.rust-lang.org/book/title-page.html">Rust</a>, which I happened to want to pick up recently, and as early as possible.</p>
 <p>For this post I will focus on how to build the most basic parts so that we have a decent initial result: a spinning cube like this:
-<p style="text-align: center"><img src="/static/image/cosmo_basic.gif" alt="cosmo_basic" style="width: 50%"/><br><em class="text-gray">Spinning Cube™</em></p></p>
+<p style="text-align: center"><img loading="lazy" src="/static/image/cosmo_basic.gif" alt="cosmo_basic" style="width: 50%"/><br><em class="text-gray">Spinning Cube™</em></p></p>
 <h4 id="terminal_rendering">Terminal Rendering&nbsp;<a class="hidden" tabindex="-1" href="#terminal_rendering" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The idea is very simple: our &quot;player&quot; should have a fixed grid of <code>char</code>, whose content will be updated every frame, and we want to refresh the screen with these characters every frame. So here it is:</p>
 <div class="highlight">
@@ -166,7 +171,7 @@
 <h4 id="ray_tracing">Ray Tracing&nbsp;<a class="hidden" tabindex="-1" href="#ray_tracing" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Here comes the core part of the project: ray tracing! The basic reasoning behind this is that when we simulate a scene, all the light rays going into our eyes (or a camera) are <strong>reversible</strong>. Given that, we can trace all the light rays from the eye to objects (and possibly reflected to something else) and compute the color we're supposed to see from that ray.</p>
 <p>Since the rendering is in terminal, we only care about the intensity (or luminance) of the object, also for the simpler version we don't do any reflection and only compute the color at the intersection point (will cover that later). So the most important problem is how do we get the intersection of a ray with an object?</p>
-<p><p style="text-align: center"><img src="/static/image/intersection.png" alt="intersection" style="width: 50%"/><br><em class="text-gray">Ray Triangle Intersection</em></p></p>
+<p><p style="text-align: center"><img loading="lazy" src="/static/image/intersection.png" alt="intersection" style="width: 50%"/><br><em class="text-gray">Ray Triangle Intersection</em></p></p>
 <p>The first thing we need to support is triangle. It's the basic shape to form a cube, and with small enough triangle you can simulate any object. You can find tons of references online (e.g. <a href="https://courses.cs.washington.edu/courses/csep557/09sp/lectures/triangle_intersection.pdf">this nice doc</a> from UW), but the basic solution is like this:</p>
 <ul>
 <li>Light ray represented by origin <span class="math">\(P\)</span> and direction <span class="math">\(\vec{d}\)</span>:
@@ -191,7 +196,7 @@ $$</li>
 }
 $$</div>
 <p>We're half way there. As long as the ray is not parallel to the plane, there must be an intersection. But we only care about the intersection when it's within the triangle, so we need to check for that.
-<p style="text-align: center"><img src="/static/image/in_triangle.png" alt="in_triangle" style="width: 65%"/><br><em class="text-gray">Check if Q is in triangle</em></p>
+<p style="text-align: center"><img loading="lazy" src="/static/image/in_triangle.png" alt="in_triangle" style="width: 65%"/><br><em class="text-gray">Check if Q is in triangle</em></p>
 The approach is as follows: If the point is <span class="math">\(Q\)</span>, take any edge vector by the counter-clockwise ordering of the triangle, e.g. <span class="math">\(\overrightarrow{AB}\)</span>, we have</p>
 <div class="math">$$
 \displaylines {
