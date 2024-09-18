@@ -9,6 +9,16 @@
         <script src="/static/script/color_theme.js"></script>
         <script>
             init_color_theme();
+
+            // Manual responsive for blog images
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.innerWidth < 768) {
+                    const elements = document.getElementsByClassName("my-resp-img");
+                    for (var i=0; i<elements.length; i++) {
+                        elements[i].style.width = "90%";
+                    }
+                }
+            });
         </script>
 
         <script id="MathJax-script" async
@@ -85,7 +95,7 @@
 <p>The <a href="https://docs.k3s.io/">k3s</a> system is very convenient in terms of supporting systems, as it comes with pre-installed <a href="https://github.com/traefik/traefik">Traefik</a> ingress controller, which will be an important part of the cluster's network management system. First let's go over how to work with Traefik in a k8s context.</p>
 <h4 id="traefik">Traefik&nbsp;<a class="hidden" tabindex="-1" href="#traefik" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Traefik is a complex system with some internal structures and works with many other services. But for now we mostly care about it's role as a network proxy for our internal services. As shown in this graph I got from <a href="https://doc.traefik.io/traefik/routing/overview/">Traefik docs</a>, it clearly defines components corresponding to each logic abstraction related to the problem it's solving:</p>
-<p><p style="text-align: center"><img src="/static/image/traefik_arch_overview.webp" alt="traefik_arch_overview" style="width: 100%"/><br><em class="text-gray">Architecture Overview of Traefik Ingress Controller</em></p></p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/traefik_arch_overview.webp" alt="traefik_arch_overview" style="width: 100%"/><br><em class="text-gray">Architecture Overview of Traefik Ingress Controller</em></p></p>
 <ul>
 <li>Entrypoint: What are the overall entrypoints of the cluster? There might be many more services in the cluster than the number of ports we're reasonably able to expose, so this is a very important abstraction in network engineering.</li>
 <li>Routers: This is the part where we apply different rules to determine where the the request goes, and we might do some modification to the request, among which the most common one is <a href="https://en.wikipedia.org/wiki/TLS_termination_proxy">SSL termination</a>. This is the part that contains most logic.</li>

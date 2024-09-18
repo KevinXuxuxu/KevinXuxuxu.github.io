@@ -9,6 +9,16 @@
         <script src="/static/script/color_theme.js"></script>
         <script>
             init_color_theme();
+
+            // Manual responsive for blog images
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.innerWidth < 768) {
+                    const elements = document.getElementsByClassName("my-resp-img");
+                    for (var i=0; i<elements.length; i++) {
+                        elements[i].style.width = "90%";
+                    }
+                }
+            });
         </script>
 
         <script id="MathJax-script" async
@@ -100,7 +110,7 @@
 <p>According to <a href="https://github.com/Jeevan-kumar-Raj/Grokking-System-Design#steps-how-i-approach-the-system-design-questions-in-interviews">Grokking system design</a> we should follow certain steps to tackle system design questions including analyse requirement and constraints, get a component diagram of the basic system, and start to go deep into some specific bottleneck of tradeoff in the system that we need to make.</p>
 <p>For this problem, we did the requirement and constraints part already. Just need to add another important part: always ask for the scale of the problem, maybe the amount of data or qps of requests the solution needs to deal with, and it should be as specific as a number (e.g. for this problem there's around 500 million tweets generated daily, and each of them less than 140 characters.) These specific numbers gives good direction about how the system should be designed.</p>
 <p>Now we have the simple diagram (made with <a href="https://excalidraw.com/">excalidraw</a>) of the components we need in this system, and we can expand the discussion around that.</p>
-<p><p style="text-align: center"><img src="/static/image/twitter.png" alt="twitter.png" style="width: 100%"/><br></p></p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/twitter.png" alt="twitter.png" style="width: 100%"/><br></p></p>
 <h4 id="data_ingestion">Data ingestion&nbsp;<a class="hidden" tabindex="-1" href="#data_ingestion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>There isn't much to talk about data ingestion as we already had some discussion about possible ways to use the Twitter API. Some other points that probably worth some thoughts are: What if the network fails? What if the program accidentally crashes? How to do backfill? How to guarantee no data loss or duplication? Is it exactly-once or at-least-once delivery?</p>
 <p>Ideally you should have a checkpoint file on a persistent file system that track the latest batch of data that actually successfully stored, and an auto restarting puller program should be good enough. Of course you need good monitoring and alerting to attract human attention when there's network issue etc.</p>

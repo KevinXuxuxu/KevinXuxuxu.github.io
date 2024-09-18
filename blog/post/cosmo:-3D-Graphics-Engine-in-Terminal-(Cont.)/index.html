@@ -9,6 +9,16 @@
         <script src="/static/script/color_theme.js"></script>
         <script>
             init_color_theme();
+
+            // Manual responsive for blog images
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.innerWidth < 768) {
+                    const elements = document.getElementsByClassName("my-resp-img");
+                    for (var i=0; i<elements.length; i++) {
+                        elements[i].style.width = "90%";
+                    }
+                }
+            });
         </script>
 
         <script id="MathJax-script" async
@@ -79,16 +89,16 @@
                 <div class="column col-sm-12 col-md-10 col-8">
                     
     
-    <p><p style="text-align: center"><img src="/static/image/cosmo_david.gif" alt="cosmo_david" style="width: 50%"/><br><em class="text-gray">David Head Rendered in 24FPS</em></p></p>
+    <p><p style="text-align: center"><img class="my-resp-img" src="/static/image/cosmo_david.gif" alt="cosmo_david" style="width: 50%"/><br><em class="text-gray">David Head Rendered in 24FPS</em></p></p>
 <p>This is a continuation of <a href="/blog/post/cosmo:-3D-Graphics-Engine-in-Terminal/">the previous post</a>, where we talked about my side project <a href="https://github.com/KevinXuxuxu/cosmo">cosmo</a> and partly about details to implement a basic 3D graphics engine in terminal. In this post we're going to cover the rest parts of implementing a basic PoC (<em>Spinning Cube™</em>).</p>
 <h4 id="camera">Camera&nbsp;<a class="hidden" tabindex="-1" href="#camera" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
-<p>To see, is to have many light rays collected onto your retina. Here we're doing the opposite (as discussed in the <a href="">Ray Tracing</a> section last time), determine a set of light rays going out, based on the type of camera we're using.</p>
+<p>To see, is to have many light rays collected onto your retina. Here we're doing the opposite (as discussed in the <a href="/blog/post/cosmo:-3D-Graphics-Engine-in-Terminal/#ray_tracing">Ray Tracing</a> section last time), determine a set of light rays going out, based on the type of camera we're using.</p>
 <ul>
 <li>Orthogonal: all light rays are parallel to each other, so that visual scale is not related to how far the objects are from the camera. This is not natural to our eyes, but quite unique taste in video games (e.g. <a href="https://en.wikipedia.org/wiki/Monument_Valley_(video_game)">Monument Valley</a>, <a href="https://en.wikipedia.org/wiki/Tunic_(video_game)">Tunic</a>) and cinematography (e.g. movies by <a href="https://en.wikipedia.org/wiki/Wes_Anderson">Wes Anderson</a>)</li>
 <li>Perspective: All light rays are shooting from <a href="https://en.wikipedia.org/wiki/Focus_(optics)">a single point</a>. This is closest to our natural experience and result of most medias.</li>
 <li>Other types like fisheye, 360-degrees etc.</li>
 </ul>
-<p>For our basic PoC, we'll implement the orthogonal camera as it's probably the easiest one. To determine such a camera in 3D space, we need a grid of points (pixels on the &quot;film&quot;) and a direction. The grid of points can then be further abstracted into the center point of the &quot;film&quot; and the size (width, height) of it. For further simplicity, we fix the camera's direction to be along the negative direction of x-axis<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. We will then have something like this:</p>
+<p>For our basic PoC, we'll implement the orthogonal camera as it's probably the easiest one. To determine such a camera in 3D space, we need a grid of points (pixels on the &quot;film&quot;) and a direction. The grid of points can then be further abstracted into the center point of the &quot;film&quot; and the size (width, height) of it. For further simplicity, we fix the camera's direction to be along the negative direction of x-axis<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. The implementation is something like this:</p>
 <div class="highlight">
     <pre class="code" data-lang="rust"><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">struct</span> <span class="nc">Camera</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="k">pub</span><span class="w"> </span><span class="n">rays</span>: <span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">Ray</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w"></span>
@@ -143,7 +153,7 @@
 <span class="w">    </span><span class="n">Triangle</span>::<span class="n">new</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="w"> </span><span class="n">B</span><span class="p">,</span><span class="w"> </span><span class="n">H</span><span class="p">),</span><span class="w"></span>
 <span class="p">];</span><span class="w"></span>
 </code></pre>
-</div><p>With the camera, we can update the <code>Player</code> to use a <code>Camera</code> object to update characters on the screen based on what the camera can see:</p>
+</div><p>With that, we can make the <code>Player</code> object take in <code>triangles</code> and a <code>Camera</code> object, and update the screen based on what the camera can see:</p>
 <div class="highlight">
     <pre class="code" data-lang="rust"><span></span><code><span class="c1">// ...</span>
 <span class="k">impl</span><span class="w"> </span><span class="n">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
@@ -175,16 +185,16 @@
 <span class="w">    </span><span class="c1">// other functions ...</span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>The logic is pretty simple: for each pixel assume blank at beginning, then go over all the triangles and put a dot when an intersection happens, and early break. This works in our cube case because we only have one object in the scene, so one ray cannot intersect 2 triangles both on the positive side.</p>
+</div><p>The logic is pretty simple: for each pixel assume blank at beginning, then go over all the triangles and put a dot when an intersection happens, and break early. This works in our cube case because we only have one object in the scene, so one ray cannot intersect 2 triangles both on the positive side<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>.</p>
 <p>With what we already have and some additional code in <code>main.rs</code> to connect everything together, we can do <code>cargo run</code> and get a still frame of this:</p>
-<p><p style="text-align: center"><img src="/static/image/cosmo_first_cube.png" alt="cosmo_first_cube" style="width: 40%"/><br><em class="text-gray">Initial Result</em></p></p>
-<p>This is not that exciting and a bit stupid, but this is clearly correct and does look like the shadow of a standing cube. You can get it from <a href="https://github.com/KevinXuxuxu/cosmo/tree/a1bacf53311124e931c9e61247c7430f48fe17f0/rust_lite">this version</a> of the code, and feel free to play with the camera parameters to check the effects.</p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/cosmo_first_cube.png" alt="cosmo_first_cube" style="width: 40%"/><br><em class="text-gray">Initial Result</em></p></p>
+<p>This is not that exciting and a bit stupid, but this is clearly correct and does look like the shadow of a standing cube. You can get it from <a href="https://github.com/KevinXuxuxu/cosmo/tree/lite_v1/rust_lite">this brach</a> of the code, and feel free to play with the camera parameters to check the effects.</p>
 <h4 id="lighting">Lighting&nbsp;<a class="hidden" tabindex="-1" href="#lighting" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>To improve our result, we need to add lighting to the scene. There're a few common types of lighting used in 3D graphics:</p>
 <ul>
-<li>Ambient light: inherent light effect of objects when there isn't external light source. The dot we give in the previous code can be considered as something like that.</li>
+<li>Ambient light: inherent light effect of objects when there isn't external light source. The dot we used in the previous code can be considered as some sort of ambient light.</li>
 <li>Directional light: light of same intensity shining in parallel along one direction, like sun light.</li>
-<li>Point light: light shining from a point in 3D space, intensity is usually modeled as decaying proportional to the square of distance reversed (<a href="https://en.wikipedia.org/wiki/Inverse-square_law">the Inverse-square law</a>).</li>
+<li>Point light: light shining from a point in 3D space, intensity is usually modeled <a href="https://en.wikipedia.org/wiki/Inverse-square_law">the inverse-square law</a>.</li>
 </ul>
 <p>For simplicity we will implement directional light for our PoC, but point light is also simple enough and is left as a homework :)</p>
 <div class="highlight">
@@ -208,15 +218,16 @@
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>Only one function <code>get_luminance</code> is needed for the <code>Light</code> object, where we use the normal vector of the intersection point to compute the luminance of that pixel: only when the normal is &quot;facing&quot; the light direction will it have a positive luminance<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>.</p>
+</div><p>Only one function <code>get_luminance</code> is needed for the <code>Light</code> object, where we use the normal vector of the intersection point to compute the luminance of that pixel: only when the normal is &quot;facing&quot; the light direction will it have a positive luminance<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>.</p>
 <p>With this, we can pass a <code>Light</code> object into player, and properly use it when updating each pixel with an intersection to any triangle:</p>
 <div class="highlight">
-    <pre class="code" data-lang="rust"><span></span><code><span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">light</span><span class="p">.</span><span class="n">get_luminance</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">n</span><span class="p">);</span><span class="w"></span>
+    <pre class="code" data-lang="rust"><span></span><code><span class="c1">// Replacing self.a[i][j] = &#39;.&#39;;</span>
+<span class="bp">self</span><span class="p">.</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="bp">self</span><span class="p">.</span><span class="n">light</span><span class="p">.</span><span class="n">get_luminance</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">n</span><span class="p">);</span><span class="w"></span>
 </code></pre>
-</div><p>With <a href="https://github.com/KevinXuxuxu/cosmo/tree/da54d4fad446893a6fff4b5326b0a5d359bb158c/rust_lite">this version</a> of the code, we can get a render that makes more sense:</p>
-<p><p style="text-align: center"><img src="/static/image/cosmo_light_cube.png" alt="cosmo_light_cube" style="width: 40%"/><br><em class="text-gray">Hey, it looks pretty cubical if you take the glasses off!</em></p></p>
+</div><p>With <a href="https://github.com/KevinXuxuxu/cosmo/tree/lite_v2/rust_lite">this branch</a> of the code, we can get a render that makes more sense:</p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/cosmo_light_cube.png" alt="cosmo_light_cube" style="width: 40%"/><br><em class="text-gray">Hey, it looks pretty cubical if you take the glasses off!</em></p></p>
 <h4 id="rotation">Rotation&nbsp;<a class="hidden" tabindex="-1" href="#rotation" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
-<p>Now that we have a correctly rendered cube, the last step is to make it move. Generally we use a <a href="https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations">rotation matrix</a> based on the axis and radian of the desired rotation, but for simplicity we will just use the simple matrix which rotates around <span class="math">\(z\)</span> axis:</p>
+<p>Now that we have a correctly rendered cube, the last step is to make it move. Generally a <a href="https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations">rotation matrix</a> is used based on the axis and radian of the desired rotation, but for simplicity we will just use the simple matrix which rotates around <span class="math">\(z\)</span> axis:</p>
 <div class="math">$$
 R_z(\alpha) = \begin{pmatrix}
 \cos\alpha & -\sin\alpha & 0\\
@@ -226,15 +237,15 @@ R_z(\alpha) = \begin{pmatrix}
 $$</div>
 <p>For any point <span class="math">\(P = (x, y, z)^T\)</span>, the new point <span class="math">\(P'\)</span> after rotation can be found by simply doing matrix multiplication:</p>
 <div class="math">$$
-P' = R_z(\alpha)P
+P' = R_z(\alpha) P
 $$</div>
-<p>With the theory, we add a util function <code>rotate_z</code> which takes in the radian rotated per second, the time taken for each frame (<code>dt</code>) and a <code>Vec3</code> point to be rotated in-place.</p>
+<p>With the theory, we add a util function <code>rotate_z</code> which takes in the radian rotated per second, the time taken for each frame (<code>dt</code>) and a <code>Vec3</code> point to be processed in-place.</p>
 <div class="highlight">
     <pre class="code" data-lang="rust"><span></span><code><span class="k">pub</span><span class="w"> </span><span class="k">fn</span> <span class="nf">rotate_z</span><span class="p">(</span><span class="n">rad</span>: <span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">dt</span>: <span class="kt">f32</span><span class="p">,</span><span class="w"> </span><span class="n">p</span>: <span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="n">Vec3</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rad</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="p">;</span><span class="w"></span>
 <span class="w">    </span><span class="o">*</span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Vec3</span>::<span class="n">new</span><span class="p">(</span><span class="w"></span>
-<span class="w">        </span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">a</span><span class="p">.</span><span class="n">cos</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">a</span><span class="p">.</span><span class="n">sin</span><span class="p">(),</span><span class="w"></span>
-<span class="w">        </span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="o">*</span><span class="n">a</span><span class="p">.</span><span class="n">sin</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="o">*</span><span class="n">a</span><span class="p">.</span><span class="n">cos</span><span class="p">(),</span><span class="w"></span>
+<span class="w">        </span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">cos</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">sin</span><span class="p">(),</span><span class="w"></span>
+<span class="w">        </span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">sin</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">cos</span><span class="p">(),</span><span class="w"></span>
 <span class="w">        </span><span class="n">p</span><span class="p">.</span><span class="n">z</span><span class="w"></span>
 <span class="w">    </span><span class="p">);</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
@@ -270,8 +281,8 @@ $$</div>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>With <a href="https://github.com/KevinXuxuxu/cosmo/tree/36de3a3e640c6b0f60edcfeb637846e3b7c67191/rust_lite">this version</a>, we finally achieved our goal: a spinning cube. Feel free to play around the camera/light parameter, implement other types of camera/lighting/objects. It's really fun and rewarding.</p>
-<p><p style="text-align: center"><img src="/static/image/cosmo_basic.gif" alt="cosmo_basic" style="width: 40%"/><br><em class="text-gray">Spinning Cube™</em></p></p>
+</div><p>With <a href="https://github.com/KevinXuxuxu/cosmo/tree/lite_v3/rust_lite">this version</a>, we finally achieved our goal: a spinning cube. Feel free to play around the camera/light parameter, implement other types of camera/lighting/objects. It's really fun and rewarding.</p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/cosmo_basic.gif" alt="cosmo_basic" style="width: 40%"/><br><em class="text-gray">Spinning Cube™</em></p></p>
 <h4 id="afterword">Afterword&nbsp;<a class="hidden" tabindex="-1" href="#afterword" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Although this is quite different from the current implementation of <a href="https://github.com/KevinXuxuxu/cosmo">cosmo</a>, the core idea is almost the same, and you can build on top of this in anyway you see fit.</p>
 <p>In the next post I will talk more about my current implementation, including some of the &quot;fancy stuffs&quot; I was trying to pull off, like how to create shadow? How does one object block another? What to do when there're too many objects in the scene and we hit performance issue?</p>
@@ -279,7 +290,8 @@ $$</div>
 <section class="footnotes">
 <ol>
 <li id="fn-1"><p>This is quite an over simplification. In formal computer vision study we should use something like a <a href="https://en.wikipedia.org/wiki/Camera_matrix">camera matrix</a>, which takes in a point in space with homogeneous coordinates, and directly computes the corresponding position on the film of the camera.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
-<li id="fn-2"><p>The luminance index is an adaptation of Andy's version in <a href="https://www.a1k0n.net/2006/09/15/obfuscated-c-donut.html">the original &quot;donut&quot; code</a>: <code>.,-~:;=!*#$@</code><a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>It gets more complicated when you have multiple objects and each object consists of so many triangles. Tune in for next post :)<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>The luminance index is an adaptation of Andy's version in <a href="https://www.a1k0n.net/2006/09/15/obfuscated-c-donut.html">the original &quot;donut&quot; code</a>: <code>.,-~:;=!*#$@</code><a href="#fnref-3" class="footnote">&#8617;</a></p></li>
 </ol>
 </section>
 
