@@ -1,5 +1,4 @@
 import init, { PlayerWASM } from '/static/wasm/cosmo/cosmo.js';
-console.log('cosmo loading');
 await init();
 async function readScene(id) {
     try {
@@ -35,7 +34,6 @@ async function prepareCosmo(displayEle) {
 
 window.onload = function () {
     let displayEles = document.getElementsByClassName('cosmo-display');
-    console.log(displayEles);
     for (let i = 0; i < displayEles.length; ++i) {
         prepareCosmo(displayEles[i]);
     }
