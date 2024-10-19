@@ -40,11 +40,11 @@ async function prepareCosmo(displayEle) {
     });
 }
 
-window.onload = function () {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('debug: 44')
     let displayEles = document.getElementsByClassName('cosmo-display');
     for (let i = 0; i < displayEles.length; ++i) {
         console.log('debug: 47')
         prepareCosmo(displayEles[i]);
     }
-};
+});
