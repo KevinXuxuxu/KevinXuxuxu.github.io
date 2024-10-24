@@ -23,8 +23,6 @@
                 }
             });
         </script>
-        <link rel="stylesheet" href="/static/style/cosmo.css">
-        <script type="module" src="/static/script/cosmo_load.js"></script>
 
         <script id="MathJax-script" async
           src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -48,6 +46,10 @@
           display: inline-block;
         }
     </style>
+    
+        <link rel="stylesheet" href="/static/style/cosmo.css">
+        <script type="module" src="/static/script/cosmo_load.js"></script>
+    
 
         <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
@@ -94,12 +96,12 @@
                 <div class="column col-sm-12 col-md-10 col-8">
                     
     
-    <pre><code class="cosmo-display" id="panorama-150-30">loading failed, try refresh UwU</code></pre>
+    <pre><code class="cosmo-display" scene="panorama" dimension="150,30" framerate="24" enable-aabb=false disable-shade=false>loading failed, try refresh UwU</code></pre>
 <p>The idea came from <a href="https://www.a1k0n.net/2011/07/20/donut-math.html">an amazing work</a> by <a href="https://www.a1k0n.net/">Andy Sloane</a><sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> where he wrote a compact C code (shaped like a flat donut) that renders a spinning donut in terminal. Multiple people did videos about it and it was a blast.</p>
 <p>The thing that particularly interest me is that it should not be hard to create a 3D graphics engine in terminal. With limited resolution, performance should not be a bottleneck for doing thing the easiest way<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>. I'm pretty confident that I can nail it with whatever I still remember from my collage class on computer graphics.</p>
 <p>Initially I was doing it in Python, specifically Numpy for the vector math part. It didn't take too long for me to realize that vanilla Numpy computation is too slow for the framerate I desire, and it quickly get obviously worse when more steps is added to the rendering. So I decided to move to <a href="https://doc.rust-lang.org/book/title-page.html">Rust</a>, which I happened to want to pick up recently, and as early as possible.</p>
 <p>For this post I will focus on how to build the most basic parts so that we have a decent initial result: a spinning cube like this:</p>
-<pre><code class="cosmo-display" id="cube-60-30">loading failed, try refresh UwU</code></pre>
+<pre><code class="cosmo-display" scene="cube" dimension="60,30" framerate="24" enable-aabb=false disable-shade=false>loading failed, try refresh UwU</code></pre>
 <h4 id="terminal_rendering">Terminal Rendering&nbsp;<a class="hidden" tabindex="-1" href="#terminal_rendering" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The idea is very simple: our &quot;player&quot; should have a fixed grid of <code>char</code>, whose content will be updated every frame, and we want to refresh the screen with these characters every frame. So here it is:</p>
 <div class="highlight">

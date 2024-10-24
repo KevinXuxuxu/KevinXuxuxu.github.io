@@ -1,5 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
+export function main(): void;
 export class PlayerWASM {
   free(): void;
   /**
@@ -7,12 +8,13 @@ export class PlayerWASM {
    * @param {number} fr
    * @param {number} w
    * @param {number} h
-   * @param {boolean} debug
    * @param {boolean} enable_aabb
    * @param {boolean} disable_shade
+   * @param {(string)[]} stl_data_name
+   * @param {(Uint8Array)[]} stl_data
    * @returns {PlayerWASM}
    */
-  static new(scene: (string)[], fr: number, w: number, h: number, debug: boolean, enable_aabb: boolean, disable_shade: boolean): PlayerWASM;
+  static new(scene: (string)[], fr: number, w: number, h: number, enable_aabb: boolean, disable_shade: boolean, stl_data_name: (string)[], stl_data: (Uint8Array)[]): PlayerWASM;
   /**
    * @returns {(string)[]}
    */
@@ -25,13 +27,17 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_playerwasm_free: (a: number, b: number) => void;
-  readonly playerwasm_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => number;
-  readonly playerwasm_get_a: (a: number, b: number) => void;
+  readonly playerwasm_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => number;
+  readonly playerwasm_get_a: (a: number) => Array;
   readonly playerwasm_update: (a: number) => void;
+  readonly main: () => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly __wbindgen_export_2: WebAssembly.Table;
+  readonly __externref_table_alloc: () => number;
+  readonly __externref_drop_slice: (a: number, b: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_start: () => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
