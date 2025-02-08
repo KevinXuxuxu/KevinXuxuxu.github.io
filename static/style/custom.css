@@ -1,0 +1,11 @@
+svg.nav-icon {
+    vertical-align:middle;
+    margin-bottom:2px;
+    margin-right: 5px;
+}
+svg path {
+    fill: #5755d9;
+}
+[data-theme="dark"] svg path {
+    fill: #807fe2;
+}
