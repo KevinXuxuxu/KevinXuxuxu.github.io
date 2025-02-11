@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
+        <link rel="stylesheet" href="/static/style/pygments_style.css">
+        <link rel="stylesheet" href="/static/style/custom.css">
+        <script>
+            window.addEventListener('load', function() {window.loaded = true;});
+        </script>
+
+        <script src="/static/script/color_theme.js"></script>
+        <script>
+            init_color_theme();
+
+            // Manual responsive for blog images
+            document.addEventListener("DOMContentLoaded", function () {
+                if (window.innerWidth < 768) {
+                    const elements = document.getElementsByClassName("my-resp-img");
+                    for (var i=0; i<elements.length; i++) {
+                        elements[i].style.width = "90%";
+                    }
+                }
+            });
+        </script>
+
+        <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
+    <title>RSS: Fight Against the Algorithm</title>
+
+    <style>
+        /* Initially hide the element */
+        .hidden {
+          display: none;
+        }
+        
+        /* Show the element when it's hovered over */
+        h3:hover .hidden {
+          display: inline-block;
+        }
+        h4:hover .hidden {
+          display: inline-block;
+        }
+        h5:hover .hidden {
+          display: inline-block;
+        }
+    </style>
+    
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+        <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    </head>
+    <body>
+        <div class="main container grid-lg">
+            <header class="navbar" style="margin-bottom: 2.5em;">
+                <section class="navbar-section">
+                </section>
+                <section class="navbar-section">
+                    <label id="color-switch" class="form-switch">
+                        <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
+                        <i class="form-icon"></i> <span id="moon">⏳</span>
+                    </label>
+                    <a href="https://github.com/KevinXuxuxu"><svg height="1.1em" width="1.1em" viewBox="0 0 32 32" class="nav-icon" xml:space="preserve"><path clip-rule="evenodd" d="M16.003,0C7.17,0,0.008,7.162,0.008,15.997  c0,7.067,4.582,13.063,10.94,15.179c0.8,0.146,1.052-0.328,1.052-0.752c0-0.38,0.008-1.442,0-2.777  c-4.449,0.967-5.371-2.107-5.371-2.107c-0.727-1.848-1.775-2.34-1.775-2.34c-1.452-0.992,0.109-0.973,0.109-0.973  c1.605,0.113,2.451,1.649,2.451,1.649c1.427,2.443,3.743,1.737,4.654,1.329c0.146-1.034,0.56-1.739,1.017-2.139  c-3.552-0.404-7.286-1.776-7.286-7.906c0-1.747,0.623-3.174,1.646-4.292C7.28,10.464,6.73,8.837,7.602,6.634  c0,0,1.343-0.43,4.398,1.641c1.276-0.355,2.645-0.532,4.005-0.538c1.359,0.006,2.727,0.183,4.005,0.538  c3.055-2.07,4.396-1.641,4.396-1.641c0.872,2.203,0.323,3.83,0.159,4.234c1.023,1.118,1.644,2.545,1.644,4.292  c0,6.146-3.74,7.498-7.304,7.893C19.479,23.548,20,24.508,20,26c0,2,0,3.902,0,4.428c0,0.428,0.258,0.901,1.07,0.746  C27.422,29.055,32,23.062,32,15.997C32,7.162,24.838,0,16.003,0z" fill="#181616" fill-rule="evenodd"/><g/><g/><g/><g/><g/><g/></svg></a>
+                    <a href="/feed.xml"><svg height="1.1em" width="1.1em" viewBox="0 0 20 22" xml:space="preserve" class="nav-icon"><path d="M6.002,15.999C4.895,15.999,3.998,16.896,4,18c0,1.104,0.896,2.001,2.002,1.999C7.105,20.001,8.002,19.105,8,18  C8.002,16.893,7.105,15.997,6.002,15.999z"/><path d="M6,4C4.896,4,4,4.896,4,6s0.896,2,2,2c5.514,0,10,4.486,10,10c0,1.104,0.896,2,2,2s2-0.896,2-2C20,10.28,13.72,4,6,4z"/><path d="M6,10c-1.104,0-2,0.896-2,2s0.896,2,2,2c2.205,0,4,1.794,4,4c0,1.104,0.896,2,2,2s2-0.896,2-2C14,13.589,10.411,10,6,10z"/></svg></a>
+                </section>
+            </header>
+            <header class="column col-sm-12 col-md-10 col-8">
+                
+    <figure class="avatar avatar-sm">
+        <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+    </figure>&nbsp;
+    <a href="/">fzxu's Blog</a>
+    <h1 class="heading-index">RSS: Fight Against the Algorithm</h1>
+
+    <p class="text-gray">
+        <small>2025-02-08 00:25:40</small>
+        <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/RSS/" class="text-dark">RSS</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Web Crawling/" class="text-dark">Web Crawling</a></span>
+        
+        <span class="chip bg-gray"><a href="/blog/tag/Tor/" class="text-dark">Tor</a></span>
+        
+    </p>
+
+            </header>
+                
+            <main class="content columns">
+                <div class="column col-sm-12 col-md-10 col-8">
+                    
+    
+    <p><p style="text-align: center"><img class="my-resp-img" src="/static/image/xkcd_386.png" alt="xkcd.com/386" style="width: 40%"/><br><em class="text-gray">xkcd.com/386 Duty Calls</em></p></p>
+<p>Inspired by the blog <a href="https://joeyehand.com/blog/2025/01/15/i-ditched-the-algorithm-for-rssand-you-should-too/">I Ditched the Algorithm for RSS—and You Should Too</a> I randomly read from <a href="https://news.ycombinator.com/item?id=42724284">HN</a>, I <a href="/blog/post/building_private_cloud_with_turing_pi/">self-hosted</a> my own RSS generator + web-based RSS reader, and here's how I did it.</p>
+<h4 id="motivation">Motivation&nbsp;<a class="hidden" tabindex="-1" href="#motivation" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>I actually consider myself quite resistive to addiction, but still I find myself <a href="https://en.wikipedia.org/wiki/Doomscrolling">doomscrolling</a> for an hour or two from time to time. The modern Internet has evolved to a state where most valuable contents are created within closed platforms, who have little to no interest in your wellbeing and need, but have great incentive to get you addicted (&quot;Engagement&quot;) with recommendation algorithms. Billions of dolors and greatest intelligence of our generation are devoted in making the algorithms effective.</p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/xkcd_802.png" alt="xkcd.com/802" style="width: 100%"/><br><em class="text-gray">xkcd.com/802 Online Communities 2, maybe a bit outdated</em></p></p>
+<p>While it's possible and frankly quite admirable to just give up all social media and other sources of attraction and live in a wood cabin beside Walden Pond, I'm nowhere near that level of determination, and still find some sorts of content worth consuming. So how do we take the control back from the corporations and the algorithm?</p>
+<h4 id="rss_to_the_rescue">RSS to the Rescue&nbsp;<a class="hidden" tabindex="-1" href="#rss_to_the_rescue" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p><a href="https://en.wikipedia.org/wiki/RSS">RSS</a> and basically any kind of web feed works in similar ways: Instead of manually checking content update, an automatic procedure (&quot;Feed Generator&quot;) checks periodically, keep track of the updated content metadata, and the client (&quot;Feed Reader&quot;) can poll for updates (in the form of the cutting-edge <a href="https://en.wikipedia.org/wiki/Web_feed#Technical_definition">XML™</a> documents) anytime it wants.</p>
+<p>As a <a href="https://www.rssboard.org/rss-0-9-1-netscape">25-year-old technology</a>, RSS had its popular time, before the Internet became as closed as today. Many major content platforms used to support RSS subscription (basically hosting feed generator for themselves), and there was public feed generator with close to real-time feed pushing, thanks to economies of scale. Those days are long gone.</p>
+<h4 id="freshrss">FreshRSS&nbsp;<a class="hidden" tabindex="-1" href="#freshrss" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>For casual usage with already available RSS feed, all you need is a feed reader. There're many apps and platforms available<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> with convenient integration to many major social media.</p>
+<p>While I'm looking for something away from a public service provider, I settled with <a href="https://freshrss.org/index.html">FreshRSS</a>, an opensource self-hosting RSS reader with refreshing UI an simple yet complete features. The simplest deployment is just one executable and uses a local sqlite file for data storage and persistence, which is very convenient.</p>
+<p>FreshRSS is very nice to have an <a href="https://hub.docker.com/r/freshrss/freshrss">official Docker image</a> (luckily with ARM build as well), so it's fairly easy to construct a k8s Deployment and Service config to deploy it.</p>
+<div class="highlight">
+    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss/freshrss</span>
+          <span class="nt">env</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">TZ</span>
+            <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">America/Los_Angeles</span>
+          <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CRON_MIN</span>
+            <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1,31</span>
+          <span class="nt">ports</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+              <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss-data</span>
+            <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/var/www/FreshRSS/data</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss-data</span>
+        <span class="nt">hostPath</span><span class="p">:</span>
+          <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/persistent/storage/path/freshrss/data</span>
+          <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Directory</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">ports</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+      <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">80</span>
+      <span class="nt">targetPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
+</code></pre>
+</div><p>As usual, I'm using <code>hostPath</code> volume for data persistence<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>, and the only 2 config needed are timezone and cron period (fetch frequency), both set by env variable. If everything goes fine, you should be able to access the service on <code>localhost:8080</code> with proper port mapping:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>kubectl port-forward svc/freshrss <span class="m">8080</span>:80
+</code></pre>
+</div><p>For now I'm exposing the service publicly through <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">tunnelling</a>, which allows me to access it from anywhere (to avoid the algorithms). This means I'm only depending on the user system security of FreshRSS so it's a bit risky.</p>
+<p>Now it is already fully usable. With RSS links from public feed generator or platform natively supporting RSS, you can easily start subscribing RSS feeds. Some examples that I subscribed:</p>
+<ul>
+<li>Youtube channels can be directly added as RSS using the original channel link, e.g. <a href="https://www.youtube.com/@3blue1brown">https://www.youtube.com/@3blue1brown</a>, <a href="https://www.youtube.com/@veritasium">https://www.youtube.com/@veritasium</a></li>
+<li><a href="https://hnrss.github.io/">Hacker News RSS</a> is a public RSS generator on HN contents. It is very capable with different features like search, replies and comments support through URL arguments. I'm just using the <code>points</code> parameter to filter out posts that made to front page with more points than e.g. 80: <a href="https://hnrss.org/frontpage?points=80">https://hnrss.org/frontpage?points=80</a></li>
+</ul>
+<h4 id="rss_generator">RSS Generator&nbsp;<a class="hidden" tabindex="-1" href="#rss_generator" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Unfortunately due to reasons we mentioned above, many (actually more and more) content platforms<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup> are not willing to get you access content through means other than their own website or app. They tend to have very poor RSS support, if not nothing at all. In this case we need to have our own RSS feed generator and fetch contents by ourselves.</p>
+<p>One of the most famous opensource solution is <a href="https://docs.rsshub.app/">RSSHub</a>, a NodeJS based RSS feed generator with community driven support for many content platforms. It has an <a href="https://docs.rsshub.app/guide/instances">official public deployment</a> to be directly used as feed generator<sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup>, and you can self-host as well.
+The problem is that</p>
+<ul>
+<li>many routs I need seems to be broken (e.g. <a href="https://rsshub.app/bilibili/user/dynamic/2267573">Bilibili user dynamics example</a>) from the official deployment</li>
+<li>I'm not a big fun of JS and Node ecosystem.</li>
+</ul>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/rsshub_fail.png" alt="rsshub_fail" style="width: 80%"/><br><em class="text-gray">Failed fetch on RSSHub official deployment</em></p></p>
+<p>Instead, I'm writing a simple Python RSS generator implementation using the following dependencies:</p>
+<ul>
+<li><a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">Beautiful Soup</a> for parsing and extracting information from HTML results.</li>
+<li><a href="https://github.com/lkiesow/python-feedgen">feedgenerator</a> for generating RSS feed XML result.</li>
+<li>Flask, requests, etc. for regular server hosting and web request needs.</li>
+</ul>
+<p>The generic part for generating feed is fairly easy to understand, while the real complexity lies in the ad-hoc processing logic of the content being fetched from each source, and the problems encountered trying to fetch them.</p>
+<h5 id="form_of_content">Form of Content&nbsp;<a class="hidden" tabindex="-1" href="#form_of_content" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
+<p>Some platform has functional APIs available (API docs not so much available) for you to fetch content from, while other website you have to try to fetch raw HTML page. You may find source of content for each platform from <a href="https://github.com/DIYgod/RSSHub/tree/master/lib/routes">RSSHub routes source code</a>, which could be a good reference.</p>
+<h5 id="web_crawling_issues">Web Crawling Issues&nbsp;<a class="hidden" tabindex="-1" href="#web_crawling_issues" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
+<ul>
+<li>How do you build easily extensible infra for parsing HTML with beautiful soup?</li>
+<li>Simple anti-bots filtering: Correct <code>User-Agent</code> in request header is needed, ans sometimes it's necessary to involve some automatic browser library (e.g. <a href="https://pptr.dev/">Puppeteer</a> or <a href="https://www.selenium.dev/documentation/webdriver/">Selenium WebDriver</a>) to get over some JS trick.</li>
+<li>Login requirement: It's usually solvable with certain cookies you get from a browser with logged in account. <code>requests</code> support setting cookie values in request.</li>
+<li>IP-based blocking: This can happen if you're requesting too frequently, and can be a headache especially during developing phase. The usual solution involves proxying your requests through an IP pool (<a href="https://github.com/dperson/torproxy">torproxy</a> maybe an option).</li>
+</ul>
+<h4 id="fin">Fin&nbsp;<a class="hidden" tabindex="-1" href="#fin" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/rss_result.png" alt="rss_result" style="width: 100%"/><br><em class="text-gray">Result of my feed reader just now</em></p>
+Anyways this is what I got now, and hopefully this helps be fight against the algorithms and get back my attention span :) I have also added RSS feed for this blog (<a href="/feed.xml">click this</a> or check the cute icon on top-right corner), so please feel free to subscribe! See you next time and happy hacking!</p>
+<p><strong>Note that web crawling and proxy tooling might be used for illegal purposes. The nature of the content, the request frequency or even jurisdiction affects the legal definition and practice on this matter. This blog is not legal advice, and any technology mentioned should be used responsibly and at your own risk.</strong></p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>e.g. <a href="https://feedly.com/">Feedly</a>, <a href="https://www.inoreader.com/">Inoreader</a>, <a href="https://www.newsblur.com/">NewsBlur</a><a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>See <a href="/blog/post/building_private_cloud_storage_solution/">Building Private Cloud: Storage Solution</a> for more details.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Some example platforms that I would like to have better RSS support include: <a href="https://bilibili.com">Bilibili</a>, <a href="https://weibo.com">Weibo</a>, <a href="https://gcores.com">G-Cores</a><a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p>...If I'm understanding correctly? They seems to have a &quot;decentralized&quot; deployment strategy but I'm not looking too deep into it.<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+    
+    <i><a class="text-secondary" style="font-size: .7rem;" href="https://github.com/KevinXuxuxu/blog/blob/main/posts/RSS:-Fight-Against-the-Algorithm.md">Markdown source</a></i>
+
+    <script src="https://utteranc.es/client.js"
+            repo="KevinXuxuxu/KevinXuxuxu.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+    </script>
+
+                </div>
+                <div class="column col-sm-12 col-md-2 col-4">
+                    
+                    
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
