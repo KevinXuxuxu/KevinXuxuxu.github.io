@@ -109,9 +109,8 @@
 <p>At the beginning I imagined it to be a pretty standard web service deployment, but later found out that there is a few twists to it:</p>
 <ul>
 <li>Obviously it is going to need persistent local storage support, so we'll need to utilize the setup we covered in <a href="/blog/post/building_private_cloud_storage_solution/#implementation">Storage Solution</a>, and we'll cover that in a bit.</li>
-<li>Most container registry client prefers SSL connection to the registry[^1], so we need to properly handle that.</li>
-<li>Do we need authentication support? Some solution might force that as a security feature.
-[^1]: This is a conclusion from a tremendous amount of trial and failure 🥹.</li>
+<li>Most container registry client prefers SSL connection to the registry<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>, so we need to properly handle that.</li>
+<li>Do we need authentication support? Some solution might force that as a security feature.</li>
 </ul>
 <p>Long story short, here's the overall k8s deployment config:</p>
 <div class="highlight">
@@ -147,7 +146,7 @@
             <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/mnt/m2/shared/registry</span>
             <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Directory</span>
 </code></pre>
-</div><p>For the persistent storage, we're creating a directory <code>registry</code> in the shared NFS dir <code>/mnt/m2/shared</code>. Since no node selector is specified, we're not guaranteed to run registry on the NFS server node. As a result we should make registry have open permission<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> to guarantee accessibility from any node. With that, we can create a <code>hostPath</code> volume on that dir and mount it into the container to <code>/var/lib/registry</code> where the registry is going to store all the images and metadata.</p>
+</div><p>For the persistent storage, we're creating a directory <code>registry</code> in the shared NFS dir <code>/mnt/m2/shared</code>. Since no node selector is specified, we're not guaranteed to run registry on the NFS server node. As a result we should make registry have open permission<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup> to guarantee accessibility from any node. With that, we can create a <code>hostPath</code> volume on that dir and mount it into the container to <code>/var/lib/registry</code> where the registry is going to store all the images and metadata.</p>
 <p>For network access, we'll first generate SSL certificates for the registry service:</p>
 <div class="highlight">
     <pre class="code" data-lang="shell"><span></span><code>$ openssl req -x509 -newkey rsa:4096 -days <span class="m">365</span> -nodes -sha256 <span class="se">\</span>
@@ -207,8 +206,8 @@ tls.key tls.crt
 </ul>
 <p>Since we're creating and using &quot;self-signed&quot; SSL certificates, we need to &quot;trust&quot; the cert from where you're trying to access it. The way of doing that varies by the OS/Distro you are running on your nodes.</p>
 <ul>
-<li>To access registry from docker client, add certs to <code>/etc/docker/certs.d/cr.local.example.com:5000/</code><sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup></li>
-<li>To access registry from k8s cluster, the certs need to be trusted by from the OS on each node. For Debian based OS (Ubuntu, RPiOS), copy <code>.crt</code> file to <code>/usr/local/share/ca-certificates/</code>, and run <code>sudo update-ca-certificates</code> to make it effective.</li>
+<li>To access registry from docker client, add certs to <code>/etc/docker/certs.d/cr.local.example.com:5000/</code><sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup></li>
+<li>To access registry from k8s cluster, the certs need to be trusted by from the OS on each node. For Debian based OS (Ubuntu, RPiOS), copy <code>.crt</code> file to <code>/usr/local/share/ca-certificates/</code>, run <code>sudo update-ca-certificates</code> and <strong>restart the node</strong><sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup> to make it effective.</li>
 </ul>
 <p>Finally, we need to add <code>cr.local.example.com</code> to our local DNS server, so that it's accessible not only from within the cluster, but also within your home subnet. As we introduced in <a href="/blog/post/building_private_cloud_local_dns/#the_corefile">Local DNS</a>, use the following command to edit CoreDNS config file and add <code>cr.local.example.com</code> as a new host in <code>NodeHosts</code> block, and point to any node IP.</p>
 <div class="highlight">
@@ -254,8 +253,10 @@ docker push cr.local.example.com:5000/postgres
 <p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/tag/Private%20Cloud/">here</a>.</em></p>
 <section class="footnotes">
 <ol>
-<li id="fn-1"><p>777 permission. I know this is very dangerous security wise, but it's entirely internally used, and I'll try to enforce a group based permission very soon.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
-<li id="fn-2"><p>In my case I need to access from docker on my MacOS because I do all my work there, including building and managing images. To do that you should be able to open the <code>.crt</code> file using the Keychain Access program and trust it on OS level.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-1"><p>This is a conclusion from a tremendous amount of trial and failure 🥹.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>777 permission. I know this is very dangerous security wise, but it's entirely internally used, and I'll try to enforce a group based permission very soon.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>In my case I need to access from docker on my MacOS because I do all my work there, including building and managing images. To do that you should be able to open the <code>.crt</code> file using the Keychain Access program and trust it on OS level. <em>(Updated 2025-02-10)</em> The certificate trusting for different kind of docker daemons varies. Since I switched to <a href="https://github.com/abiosoft/colima">Colima</a>, the new cert should be put into <code>~/.docker/certs.d/cr.local.example.com/</code>, and a restart of the docker daemon (which ever you're using) is most likely needed as well.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p><em>(Updated 2025-02-10)</em> The k3s server and agent need restarting to be aware of the changed certificate trust. Took stupid me a painful 1.5h because of this missed step.<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
 </ol>
 </section>
 
