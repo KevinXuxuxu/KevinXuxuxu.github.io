@@ -24,7 +24,7 @@ function reload_script(old_script, new_theme) {
     old_script.parentNode.replaceChild(new_script, old_script);
 }
 
-function change_color_theme(color_theme) {
+function change_color_theme(color_theme, init) {
     var moon = document.getElementById('moon');
     var checkbox = document.getElementById('theme-checkbox');
     var giscus_script = document.getElementById('giscus');
@@ -37,12 +37,15 @@ function change_color_theme(color_theme) {
         moon.textContent = '🌒';
         reload_script(giscus_script, 'catppuccin_macchiato');
     }
+    if (init) {
+        checkbox.removeAttribute('disabled');
+    }
 }
 
 function set_color_theme(color_theme) {
     setCookie('color_theme', color_theme, 30);
     document.documentElement.setAttribute('data-theme', color_theme);
-    change_color_theme(color_theme);
+    change_color_theme(color_theme, false);
 }
 
 function get_initial_color_theme() {
@@ -63,8 +66,7 @@ function init_color_theme() {
 
 function init_color_switch() {
     var color_theme = get_initial_color_theme();
-    change_color_theme(color_theme);
-    checkbox.removeAttribute('disabled');
+    change_color_theme(color_theme, true);
 }
 
 function switch_color_theme() {
