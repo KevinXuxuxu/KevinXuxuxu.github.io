@@ -31,11 +31,11 @@ function change_color_theme(color_theme, init) {
     if (color_theme === 'dark') {
         checkbox.checked = true;
         moon.textContent = '🌖';
-        reload_script(giscus_script, 'catppuccin_latte');
+        reload_script(giscus_script, 'catppuccin_macchiato');
     } else {
         checkbox.checked = false;
         moon.textContent = '🌒';
-        reload_script(giscus_script, 'catppuccin_macchiato');
+        reload_script(giscus_script, 'catppuccin_latte');
     }
     if (init) {
         checkbox.removeAttribute('disabled');
