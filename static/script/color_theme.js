@@ -16,18 +16,33 @@ function getCookie(cName, default_value) {
     return res;
 }
 
-function set_color_theme(color_theme) {
-    setCookie('color_theme', color_theme, 30);
+function reload_script(old_script, new_theme) {
+    // This is to switch giscus theme
+    var new_script = document.createElement('script');
+    Array.from(old_script.attributes).forEach(attr => new_script.setAttribute(attr.name, attr.value));
+    new_script.setAttribute('data-theme', new_theme);
+    old_script.parentNode.replaceChild(new_script, old_script);
+}
+
+function change_color_theme(color_theme) {
     var moon = document.getElementById('moon');
     var checkbox = document.getElementById('theme-checkbox');
-    document.documentElement.setAttribute('data-theme', color_theme);
+    var giscus_script = document.getElementById('giscus');
     if (color_theme === 'dark') {
         checkbox.checked = true;
         moon.textContent = '🌖';
+        reload_script(giscus_script, 'catppuccin_latte');
     } else {
         checkbox.checked = false;
         moon.textContent = '🌒';
+        reload_script(giscus_script, 'catppuccin_macchiato');
     }
+}
+
+function set_color_theme(color_theme) {
+    setCookie('color_theme', color_theme, 30);
+    document.documentElement.setAttribute('data-theme', color_theme);
+    change_color_theme(color_theme);
 }
 
 function get_initial_color_theme() {
@@ -48,15 +63,7 @@ function init_color_theme() {
 
 function init_color_switch() {
     var color_theme = get_initial_color_theme();
-    var moon = document.getElementById('moon');
-    var checkbox = document.getElementById('theme-checkbox');
-    if (color_theme === 'dark') {
-        checkbox.checked = true;
-        moon.textContent = '🌖';
-    } else {
-        checkbox.checked = false;
-        moon.textContent = '🌒';
-    }
+    change_color_theme(color_theme);
     checkbox.removeAttribute('disabled');
 }
 
