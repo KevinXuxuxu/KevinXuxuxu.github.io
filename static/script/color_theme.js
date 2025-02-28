@@ -80,7 +80,8 @@ function switch_color_theme() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const element = document.getElementById("color-switch");
-    if (element) {
+    const giscus_script = document.getElementById("giscus");
+    if (element && giscus_script) {
         init_color_switch();
     }
 });
