@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
+    <link rel="stylesheet" href="/static/style/pygments_style.css">
+    <link rel="stylesheet" href="/static/style/custom.css">
+    <script>
+        window.addEventListener('load', function () { window.loaded = true; });
+    </script>
+
+    <script src="/static/script/color_theme.js"></script>
+    <script>
+        init_color_theme();
+
+        // Manual responsive for blog images
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.innerWidth < 768) {
+                const elements = document.getElementsByClassName("my-resp-img");
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].style.width = "90%";
+                }
+            }
+        });
+    </script>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<title>Reviving My Old Macbook Pro</title>
+
+<style>
+    /* Initially hide the element */
+    .hidden {
+        display: none;
+    }
+
+    /* Show the element when it's hovered over */
+    h3:hover .hidden {
+        display: inline-block;
+    }
+
+    h4:hover .hidden {
+        display: inline-block;
+    }
+
+    h5:hover .hidden {
+        display: inline-block;
+    }
+</style>
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+</head>
+
+<body>
+    <div class="main container grid-lg">
+        <header class="navbar" style="margin-bottom: 2.5em;">
+            <section class="navbar-section">
+            </section>
+            <section class="navbar-section">
+                <label id="color-switch" class="form-switch">
+                    <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
+                    <i class="form-icon"></i> <span id="moon">⏳</span>
+                </label>
+                <a href="https://github.com/KevinXuxuxu"><svg height="1.1em" width="1.1em" viewBox="0 0 32 32"
+                        class="nav-icon" xml:space="preserve">
+                        <title>Github</title>
+                        <path clip-rule="evenodd"
+                            d="M16.003,0C7.17,0,0.008,7.162,0.008,15.997  c0,7.067,4.582,13.063,10.94,15.179c0.8,0.146,1.052-0.328,1.052-0.752c0-0.38,0.008-1.442,0-2.777  c-4.449,0.967-5.371-2.107-5.371-2.107c-0.727-1.848-1.775-2.34-1.775-2.34c-1.452-0.992,0.109-0.973,0.109-0.973  c1.605,0.113,2.451,1.649,2.451,1.649c1.427,2.443,3.743,1.737,4.654,1.329c0.146-1.034,0.56-1.739,1.017-2.139  c-3.552-0.404-7.286-1.776-7.286-7.906c0-1.747,0.623-3.174,1.646-4.292C7.28,10.464,6.73,8.837,7.602,6.634  c0,0,1.343-0.43,4.398,1.641c1.276-0.355,2.645-0.532,4.005-0.538c1.359,0.006,2.727,0.183,4.005,0.538  c3.055-2.07,4.396-1.641,4.396-1.641c0.872,2.203,0.323,3.83,0.159,4.234c1.023,1.118,1.644,2.545,1.644,4.292  c0,6.146-3.74,7.498-7.304,7.893C19.479,23.548,20,24.508,20,26c0,2,0,3.902,0,4.428c0,0.428,0.258,0.901,1.07,0.746  C27.422,29.055,32,23.062,32,15.997C32,7.162,24.838,0,16.003,0z"
+                            fill="#181616" fill-rule="evenodd" />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                    </svg></a>
+                <a href="/feed.xml"><svg height="1.1em" width="1.1em" viewBox="0 0 20 22" xml:space="preserve"
+                        class="nav-icon">
+                        <title>RSS feed</title>
+                        <path
+                            d="M6.002,15.999C4.895,15.999,3.998,16.896,4,18c0,1.104,0.896,2.001,2.002,1.999C7.105,20.001,8.002,19.105,8,18  C8.002,16.893,7.105,15.997,6.002,15.999z" />
+                        <path
+                            d="M6,4C4.896,4,4,4.896,4,6s0.896,2,2,2c5.514,0,10,4.486,10,10c0,1.104,0.896,2,2,2s2-0.896,2-2C20,10.28,13.72,4,6,4z" />
+                        <path
+                            d="M6,10c-1.104,0-2,0.896-2,2s0.896,2,2,2c2.205,0,4,1.794,4,4c0,1.104,0.896,2,2,2s2-0.896,2-2C14,13.589,10.411,10,6,10z" />
+                    </svg></a>
+            </section>
+        </header>
+        <header class="column col-sm-12 col-md-10 col-8">
+            
+<figure class="avatar avatar-sm">
+    <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+</figure>&nbsp;
+<a href="/">fzxu's Blog</a>
+<h1 class="heading-index">Reviving My Old Macbook Pro</h1>
+
+<p class="text-gray">
+    <small>2025-06-14 10:34:56</small>
+    <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Apple/" class="text-dark">Apple</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/MacBookPro/" class="text-dark">MacBookPro</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/macOS/" class="text-dark">macOS</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Ubuntu/" class="text-dark">Ubuntu</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Architecture/" class="text-dark">Architecture</a></span>
+    
+</p>
+
+        </header>
+
+        <main class="content columns">
+            <div class="column col-sm-12 col-md-10 col-8">
+                
+
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/old_macbook_back.jpg" alt="old_macbook_back" style="width: 60%"/><br><em class="text-gray">Backside of my old Macbook Pro</em></p></p>
+<p>Recently I got my hands on one of my old Macbook Pro from college time. It was a 2009 model high-end 15-inch Macbook Pro, which is supposed to be among <a href="https://www.quora.com/What-is-the-last-upgradable-15-MacBook-Pro-model-number-where-I-can-swap-RAM-and-HD">the last models of Macbook Pro that's still user repairable and upgradable</a>. Which is exactly what I did back in my sophomore year: The machine already has 16G RAM which is more than enough at the time, but I did remove the CD drive (yes, they come with CD drive at the time), moved the original HDD to where the CD drive was, and installed a SSD where the HDD was. It was really fun at the time, and since it has an Intel x86 CPU, I want to revive it now and (possibly) use it in my <a href="/blog/post/building_private_cloud_with_turing_pi/">cluster</a>.</p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/old_macbook_proc.png" alt="old_macbook_proc" style="width: 100%"/><br><em class="text-gray">Inside of Macbook Pro Model A1286 (source: iFixit) with my repairs and upgrades</em></p></p>
+<h4 id="(minor)_repair">(Minor) Repair&nbsp;<a class="hidden" tabindex="-1" href="#(minor)_repair" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Before I took it, it was being used as a movie player for my parents, sitting on the TV stand, streaming videos from the NAS I installed for them. Most of the hardware and the system works ok-ish, but the UI sometimes feels sluggish and less responsive, and the backside was bulgy where the battery was at, which is a more serious issue.</p>
+<p>Luckily this model lived up to its reputation, and it was fairly easy to find a reliable <a href="https://item.taobao.com/item.htm?_u=f22vneqg59eb&amp;id=684035837392&amp;spm=a1z09.2.0.0.60742e8dvSjI9r">shop on Taobao</a> who sells replacement batteries from the original manufacturer at a reasonable price<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. And replacement was easy following the <a href="https://www.ifixit.com/Guide/MacBook+Pro+15-Inch+Unibody+Mid+2010+Battery+Replacement/3024">MacBook Pro 15&quot; Unibody Mid 2010 Battery Replacement tutorial from iFixit</a>.</p>
+<h4 id="new_os_and_drivers">New OS and Drivers&nbsp;<a class="hidden" tabindex="-1" href="#new_os_and_drivers" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>The next step is to get rid of the old MacOS and install some lightweight linux. It took me an afternoon to go through my old files on the system and backup meaningful files to my NAS, which is a painful thing to do because everything has so much memory attached XD.</p>
+<p>After some consideration, I still went with <a href="https://ubuntu.com/download/desktop">Ubuntu 24.04 Desktop</a> just because I'm going to add it to my cluster and Ubuntu is something I already worked with. After downloading the ISO (5.9G? Why?) I used <a href="https://etcher.balena.io/">balenaEtcher</a> to create an installing medium with a spare usb drive, which is pretty straight forward.</p>
+<p>Next is to install Ubuntu with our prepared install medium. Plugin the usb drive, start the machine while pressing Alt<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>, will get you into the boot page. Make sure there isn't any other usb plugged on the machine<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>, and you should see a yellow disk named &quot;EFI Boot&quot;. That is the usb installer and we should boot from it. After that just choose &quot;Try or Install Ubuntu&quot; and select the correct hard drive to wipe and install the system, and follow the instructions from there.</p>
+<p>Ubuntu Desktop works smoothly on Macbook Pro! The display compatibility is perfect and all the hardware drivers seem to be working except for Wifi. No need to fret as I have seen and dealt with this many times. Luckily the ethernet works out of the box, so I can plug it with a network cable, and install necessary wifi firmware from apt:</p>
+<ul>
+<li>Check for the wireless network hardware model, the important part is at the end.</li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ lspci -nn -d 14e4:
+<span class="m">02</span>:00.0 Network controller <span class="o">[</span><span class="m">0280</span><span class="o">]</span>: Broadcom Inc. and subsidiaries BCM4331 <span class="m">802</span>.11a/b/g/n <span class="o">[</span>14e4:4331<span class="o">]</span> <span class="o">(</span>rev <span class="m">02</span><span class="o">)</span>
+</code></pre>
+</div><ul>
+<li>Check the corresponding firmware package name from <a href="https://askubuntu.com/questions/55868/installing-broadcom-wireless-drivers">Broadcom Wireless Table section in this answer</a>, and install if with <code>apt</code></li>
+</ul>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>$ sudo apt update
+$ sudo apt install firmware-b43-installer linux-firmware
+</code></pre>
+</div><ul>
+<li>Restart machine.</li>
+</ul>
+<p>Although I don't really need Wifi if I'm running it as a cluster node, it's still easier that I don't have to be pinned around my router to work on it.</p>
+<h4 id="on_to_the_cluster!">On to the Cluster!&nbsp;<a class="hidden" tabindex="-1" href="#on_to_the_cluster!" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Due to certain design choices and limitations (as documented sparsely around <a href="http://localhost:8000/blog/tag/Private%20Cloud/">a few posts in the series</a>), there're some non-trivial steps to setup a new node. I have done this quite a few times, but it would still be nice to keep the setup routine spelled out here for future references.</p>
+<ul>
+<li>Setup nfs mount for the shared storage solution following instructions <a href="/blog/post/building_private_cloud_storage_solution/#mount_nfs_on_clients">here</a></li>
+<li>Add local container registry service (e.g. <code>cr.local.example.com</code>) to <code>/etc/hosts</code> for local image pulling<sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup>.</li>
+<li>Follow <a href="https://docs.k3s.io/quick-start#install-script">k3s quick start</a> to add the current machine as an additional agent node.</li>
+<li>For some unknown reason (probably some special configuration k3s did to the host system), the machine's DNS resolution will start to fail. Usually I need to manually set a valid nameserver in <code>/etc/resolv.conf</code> (e.g. <code>nameserver 8.8.8.8</code> Google official DNS) for it to work at the moment. The file will be overwrite back to <code>127.0.0.53</code> later but everything seems to work just fine going forward.</li>
+</ul>
+<p>Now that my cluster have my old Macbook connected, it has officially become what they call a system with <a href="https://en.wikipedia.org/wiki/Heterogeneous_System_Architecture">Heterogeneous Architecture</a>, i.e. distributed system with multiple different compute architectures (x86_64 or amd64, and arm64) to support.</p>
+<p>This immediately brings a problem. I have a <a href="https://grafana.com/docs/loki/latest/send-data/promtail/">promtail</a> daemonset deployed in the cluster and the image is from my own container registry. Before now all my environment has been Arm based, so the promtail image is only built for Arm. As a result, the promtail pod on macbook starts to crash-loop with this (not so informative) error message<sup class="footnote-ref" id="fnref-5"><a href="#fn-5">5</a></sup>:</p>
+<div class="highlight">
+    <pre class="code" data-lang="text"><span></span><code>exec /usr/bin/sh: exec format error
+</code></pre>
+</div><p>This means that the image arch is different from the host arch. Luckily just like Docker Hub, my container registry (<a href="https://distribution.github.io/distribution/">CNCF Distribution Registry</a>) also supports hosting multi-arch images out-of-the-box. All I need is to find a way to port the official multi-arch image from Docker Hub to my registry.</p>
+<p>Thankfully we have <a href="https://github.com/containers/skopeo">skopeo</a>, a commandline tool for various operations with container images and container image registries. For MacOS just do <code>brew install skopeo</code> and it can directly copy image from one registry to another without storing to local file system and with multi-arch natively supported:</p>
+<div class="highlight">
+    <pre class="code" data-lang="shell"><span></span><code>skopeo copy --all <span class="se">\</span>
+  docker://docker.io/grafana/promtail:3.3.2 <span class="se">\</span>
+  docker://cr.local.example.com:5000/grafana/promtail:3.3.2
+</code></pre>
+</div><p>After that, the image on my registry will be multi-arch, and k3s automatically chooses the image version with the correct arch depending on the target host arch, voila!</p>
+<p>Ok so this solves the case when I'm just porting and using an official image with existing multi-arch support, which is the majority of the case for me. But for the cases where I build my own image, there's 2 choices:</p>
+<ul>
+<li>find a way to build/cross-build image versions for different archs and compile them together (doable but exhausting)</li>
+<li>restrict k3s deployment to only provision pods on hosts with specific arch (arm64) (lazy but much easier)</li>
+</ul>
+<p>And you know which one I would choose XD</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>You can also find decent ones from <a href="https://www.aliexpress.us/w/wholesale-A1286-battery.html?spm=a2g0o.productlist.search.0">AliExpress</a> if you're e.g. in the US.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>This works for the older firmware that comes with earlier models (2009-2012) of Macbook. For later versions the procedure might be different.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>I did try to install Ubuntu from a Logitech wireless mouse receiver, and no, it didn't work.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p>This used to be unnecessary because of the <a href="/blog/post/building_private_cloud_local_dns/">local DNS</a> setup, but that turns out to be unstable for some reason. Will look into that later XD<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
+<li id="fn-5"><p>This also happened later when my postgresql backup cronjob choose to run on the macbook.<a href="#fnref-5" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+
+<i><a class="text-secondary" style="font-size: .7rem;"
+        href="https://github.com/KevinXuxuxu/blog/blob/main/posts/Reviving-My-Old-Macbook-Pro.md">Markdown source</a></i>
+
+<script id="giscus" src="https://giscus.app/client.js" data-repo="KevinXuxuxu/KevinXuxuxu.github.io"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkzNjU0MjE0Ng==" data-category="Announcements"
+    data-category-id="DIC_kwDOAi2Wws4Cna5N" data-mapping="title" data-strict="0" data-reactions-enabled="1"
+    data-emit-metadata="0" data-input-position="bottom" data-theme="catppuccin_latte" data-lang="en" data-loading="lazy"
+    crossorigin="anonymous" async>
+    </script>
+
+            </div>
+            <div class="column col-sm-12 col-md-2 col-4">
+                
+                
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
