@@ -166,7 +166,7 @@ $ sudo apt install firmware-b43-installer linux-firmware
 <div class="highlight">
     <pre class="code" data-lang="text"><span></span><code>exec /usr/bin/sh: exec format error
 </code></pre>
-</div><p>This means that the image arch is different from the host arch. Luckily just like Docker Hub, my container registry (<a href="https://distribution.github.io/distribution/">CNCF Distribution Registry</a>) also supports hosting multi-arch images out-of-the-box. All I need is to find a way to port the official multi-arch image from Docker Hub to my registry.</p>
+</div><p>This means that the image arch is different from the host arch<sup class="footnote-ref" id="fnref-6"><a href="#fn-6">6</a></sup>. Luckily just like Docker Hub, my container registry (<a href="https://distribution.github.io/distribution/">CNCF Distribution Registry</a>) also supports hosting multi-arch images out-of-the-box. All I need is to find a way to port the official multi-arch image from Docker Hub to my registry.</p>
 <p>Thankfully we have <a href="https://github.com/containers/skopeo">skopeo</a>, a commandline tool for various operations with container images and container image registries. For MacOS just do <code>brew install skopeo</code> and it can directly copy image from one registry to another without storing to local file system and with multi-arch natively supported:</p>
 <div class="highlight">
     <pre class="code" data-lang="shell"><span></span><code>skopeo copy --all <span class="se">\</span>
@@ -187,6 +187,7 @@ $ sudo apt install firmware-b43-installer linux-firmware
 <li id="fn-3"><p>I did try to install Ubuntu from a Logitech wireless mouse receiver, and no, it didn't work.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
 <li id="fn-4"><p>This used to be unnecessary because of the <a href="/blog/post/building_private_cloud_local_dns/">local DNS</a> setup, but that turns out to be unstable for some reason. Will look into that later XD<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
 <li id="fn-5"><p>This also happened later when my postgresql backup cronjob choose to run on the macbook.<a href="#fnref-5" class="footnote">&#8617;</a></p></li>
+<li id="fn-6"><p>I talked about this issue in <a href="/blog/post/working-with-arm/">a previous blog</a> many years ago, when I switch to use my current M1 Macbook.<a href="#fnref-6" class="footnote">&#8617;</a></p></li>
 </ol>
 </section>
 
