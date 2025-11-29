@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="fzxu">
+    <meta name="robots" content="index, follow">
+    
+<meta name="description" content="Mini Rack - A technical blog post by fzxu covering tech topics.">
+<meta name="keywords" content="Private Cloud, rack, hardware, PoE, tech, fzxu, technical blog">
+<link rel="canonical" href="https://site.fzxu.me/blog/post/Mini-Rack/">
+
+<!-- Open Graph tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mini Rack">
+<meta property="og:description" content="Mini Rack - A technical blog post by fzxu covering tech topics.">
+<meta property="og:url" content="https://site.fzxu.me/blog/post/Mini-Rack/">
+<meta property="og:site_name" content="fzxu's Blog">
+
+<meta property="og:image" content="https://site.fzxu.me/static/image/rack_dark.jpg">
+
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="fzxu">
+<meta property="article:published_time" content="2025-11-28 14:35:00">
+<meta property="article:section" content="tech">
+
+<meta property="article:tag" content="Private Cloud">
+
+<meta property="article:tag" content="rack">
+
+<meta property="article:tag" content="hardware">
+
+<meta property="article:tag" content="PoE">
+
+
+<!-- Twitter Card tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mini Rack">
+<meta name="twitter:description" content="Mini Rack - A technical blog post by fzxu covering tech topics.">
+
+<meta name="twitter:image" content="https://site.fzxu.me/static/image/rack_dark.jpg">
+
+
+
+    <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
+    <link rel="stylesheet" href="/static/style/pygments_style.css">
+    <link rel="stylesheet" href="/static/style/custom.css">
+    <script>
+        window.addEventListener('load', function () { window.loaded = true; });
+    </script>
+
+    <script src="/static/script/color_theme.js"></script>
+    <script>
+        init_color_theme();
+
+        // Manual responsive for blog images
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.innerWidth < 768) {
+                const elements = document.getElementsByClassName("my-resp-img");
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].style.width = "90%";
+                }
+            }
+        });
+    </script>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<title>Mini Rack - fzxu's Blog</title>
+
+<style>
+    /* Initially hide the element */
+    .hidden {
+        display: none;
+    }
+
+    /* Show the element when it's hovered over */
+    h3:hover .hidden {
+        display: inline-block;
+    }
+
+    h4:hover .hidden {
+        display: inline-block;
+    }
+
+    h5:hover .hidden {
+        display: inline-block;
+    }
+</style>
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Mini Rack",
+  "author": {
+    "@type": "Person",
+    "name": "fzxu",
+    "url": "https://site.fzxu.me/"
+  },
+  "datePublished": "2025-11-28 14:35:00",
+  "dateModified": "2025-11-28 14:35:00",
+  "url": "https://site.fzxu.me/blog/post/Mini-Rack/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://site.fzxu.me/blog/post/Mini-Rack/"
+  },
+  
+  "image": "https://site.fzxu.me/static/image/rack_dark.jpg",
+  
+  "publisher": {
+    "@type": "Person",
+    "name": "fzxu",
+    "url": "https://site.fzxu.me/"
+  },
+  "keywords": "Private Cloud, rack, hardware, PoE",
+  "articleSection": "tech",
+  "description": "Mini Rack - A technical blog post by fzxu covering tech topics."
+}
+</script>
+
+</head>
+
+<body>
+    <div class="main container grid-lg">
+        <header class="navbar" style="margin-bottom: 2.5em;">
+            <section class="navbar-section">
+            </section>
+            <section class="navbar-section">
+                <label id="color-switch" class="form-switch">
+                    <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
+                    <i class="form-icon"></i> <span id="moon">⏳</span>
+                </label>
+                <a href="https://github.com/KevinXuxuxu"><svg height="1.1em" width="1.1em" viewBox="0 0 32 32"
+                        class="nav-icon" xml:space="preserve">
+                        <title>Github</title>
+                        <path clip-rule="evenodd"
+                            d="M16.003,0C7.17,0,0.008,7.162,0.008,15.997  c0,7.067,4.582,13.063,10.94,15.179c0.8,0.146,1.052-0.328,1.052-0.752c0-0.38,0.008-1.442,0-2.777  c-4.449,0.967-5.371-2.107-5.371-2.107c-0.727-1.848-1.775-2.34-1.775-2.34c-1.452-0.992,0.109-0.973,0.109-0.973  c1.605,0.113,2.451,1.649,2.451,1.649c1.427,2.443,3.743,1.737,4.654,1.329c0.146-1.034,0.56-1.739,1.017-2.139  c-3.552-0.404-7.286-1.776-7.286-7.906c0-1.747,0.623-3.174,1.646-4.292C7.28,10.464,6.73,8.837,7.602,6.634  c0,0,1.343-0.43,4.398,1.641c1.276-0.355,2.645-0.532,4.005-0.538c1.359,0.006,2.727,0.183,4.005,0.538  c3.055-2.07,4.396-1.641,4.396-1.641c0.872,2.203,0.323,3.83,0.159,4.234c1.023,1.118,1.644,2.545,1.644,4.292  c0,6.146-3.74,7.498-7.304,7.893C19.479,23.548,20,24.508,20,26c0,2,0,3.902,0,4.428c0,0.428,0.258,0.901,1.07,0.746  C27.422,29.055,32,23.062,32,15.997C32,7.162,24.838,0,16.003,0z"
+                            fill="#181616" fill-rule="evenodd" />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                    </svg></a>
+                <a href="/feed.xml"><svg height="1.1em" width="1.1em" viewBox="0 0 20 22" xml:space="preserve"
+                        class="nav-icon">
+                        <title>RSS feed</title>
+                        <path
+                            d="M6.002,15.999C4.895,15.999,3.998,16.896,4,18c0,1.104,0.896,2.001,2.002,1.999C7.105,20.001,8.002,19.105,8,18  C8.002,16.893,7.105,15.997,6.002,15.999z" />
+                        <path
+                            d="M6,4C4.896,4,4,4.896,4,6s0.896,2,2,2c5.514,0,10,4.486,10,10c0,1.104,0.896,2,2,2s2-0.896,2-2C20,10.28,13.72,4,6,4z" />
+                        <path
+                            d="M6,10c-1.104,0-2,0.896-2,2s0.896,2,2,2c2.205,0,4,1.794,4,4c0,1.104,0.896,2,2,2s2-0.896,2-2C14,13.589,10.411,10,6,10z" />
+                    </svg></a>
+            </section>
+        </header>
+        <header class="column col-sm-12 col-md-10 col-8">
+            
+<figure class="avatar avatar-sm">
+    <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+</figure>&nbsp;
+<a href="/">fzxu's Blog</a>
+<h1 class="heading-index">Mini Rack</h1>
+
+<p class="text-gray">
+    <small>2025-11-28 14:35:00</small>
+    <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/rack/" class="text-dark">rack</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/hardware/" class="text-dark">hardware</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/PoE/" class="text-dark">PoE</a></span>
+    
+</p>
+
+        </header>
+
+        <main class="content columns">
+            <div class="column col-sm-12 col-md-10 col-8">
+                
+
+<p><em>I have been procrastinating on this blog post for an astonishing 10 month, so finally here it is.</em></p>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/rack_dark.jpg" alt="rack_dark" style="width: 60%"/><br><em class="text-gray">Mini-rack with accessory components on a storage rack</em></p></p>
+<p>Early this year I saw <a href="https://mini-rack.jeffgeerling.com/">Project MINI RACK</a> by <a href="https://www.jeffgeerling.com/">Jeff Geerling</a> and got inspired to make my own mini-rack, as an upgrade to my existing cluster.</p>
+<p>So what is a mini-rack? Simply speaking it refers to racks built according to a 10-inch wide standard (instead of the 19-inch standard more commonly used in the industry) and more focused on small scale systems, usually for embedded hardware, homelab or household network scenarios. Not that I have any immediate need for it, but as they alway say: Increase supply and demand will follow, so here we go :)</p>
+<h3 id="components">Components&nbsp;<a class="hidden" tabindex="-1" href="#components" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/rack_wireframe.png" alt="rack_wireframe" style="width: 80%"/><br><em class="text-gray">Rack Composition (Produced with Google Slides™)</em></p></p>
+<p>Throughout the year I have built the rack to this current status and here's a reference of all the components used.</p>
+<ul>
+<li><a href="https://www.amazon.com/dp/B0CSCWVTQ7?th=1">GeeekPi 8U Server Cabinet</a>, which comes with a few rack mounts, but I also get the following:<ul>
+<li><a href="https://www.amazon.com/dp/B0D5XNDFDZ?th=1">1U Mini-ITX Shelf</a> for the TuringPi</li>
+<li><a href="https://www.amazon.com/dp/B0DFHCM3YG?th=1">0.5U Shelf</a> for the network switch</li>
+</ul>
+</li>
+<li><a href="https://www.amazon.com/dp/B01FWAZEIU?th=1">APC UPS BE600M1, 600VA/330 Watts</a></li>
+<li><a href="https://www.amazon.com/dp/B08MBFLMDC?th=1">NETGEAR 8 Port PoE Gigabit Ethernet</a></li>
+<li><a href="https://www.raspberrypi.com/products/raspberry-pi-4-model-b/">Raspberry Pi 4B</a> with:<ul>
+<li><a href="https://www.amazon.com/dp/B07XB5PR9J?th=1">LoveRPi PoE HAT</a></li>
+</ul>
+</li>
+<li><a href="https://turingpi.com/product/turing-pi-2-5/">TuringPi 2</a> with:<ul>
+<li>3x <a href="https://www.raspberrypi.com/products/compute-module-4/?variant=raspberry-pi-cm4001000">Raspberry Pi CM4</a> + <a href="https://turingpi.com/product/cm4-adapter/">CM4 Adapter</a></li>
+<li><a href="https://turingpi.com/product/turing-rk1/?attribute_ram=16+GB">Turing RK1</a></li>
+<li>24 pin PSU, heatsink, power supply, <a href="https://www.amazon.com/dp/B0DN6LGKQB">some random 60x60x10 fan</a>...</li>
+</ul>
+</li>
+<li>QNAP NAS which I already have long before this.</li>
+<li>My old 2009 Mackbook Pro, see <a href="/blog/post/Reviving-My-Old-Macbook-Pro/">this post</a> for more detail.</li>
+</ul>
+<p>The Geeekpi mini rack is a very nice option for hobbyists like me. It comes with a variety of sizes (4U, 8U and 10U at least) and many different types of shelves you can choose according to your need (e.g. this <a href="https://www.amazon.com/GeeekPi-Rack-Mount-Distribution-Rackmate-Cabinet/dp/B0DGFZVXF6/ref=sr_1_3">0.5U DC PDU</a> seems very good for cable management), and enables you to expand and explore many different things (and potentially create new demands).</p>
+<p>The good thing about this setup is that everything in this system (including the router) is connected to the UPS. So in case of a power outage (which is <a href="https://www.fox13seattle.com/news/wind-rain-power-outages-puget">not rare in the great Seattle area</a>) my Internet and all the services will still be alive for an extended amount of time<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>.</p>
+<p>This whole setup (as you can tell from the photo) is in my storage closet which is rather small. So I 3D printed a simple wall-mount for the router <sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup> and after mounting I can enjoy the accessibility of the cluster right at the door, and also pull the whole storage rack (together with all the hardware on it) all the way out and make way for any thing I need to do in the storage closet.</p>
+<h3 id="what's_next?">What's next?&nbsp;<a class="hidden" tabindex="-1" href="#what's_next?" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>I might want to explore more PoE options since it's cool and appeals to the desire for simplicity. The NETGEAR switch I have is the smallest one that supports PoE. Although I have everything jacked into it, only the RPi 4B is utilizing PoE. It's a shame that TuringPi 2 doesn't support PoE (maybe it needs too much power?) and I still need to keep the power cable from the back. A fun thing to do is to get WiFi APs in other rooms where we have bad signal, and use PoE to power through the ethernet alone, although it's not related to mini-rack anymore.</p>
+<p>Another thing I've been thinking is to make a DIY NAS as a replacement for my old (3+ years old) QNAP NAS. I watched a few videos about DIY NAS <sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup> and found in the comment that <a href="https://www.friendlyelec.com/index.php?route=product/product&amp;product_id=294">CM3588</a> might be a good thing to start trying. It would fit nicely in a 1U space on the mini-rack, instead of where the QNAP NAS is at (taking up about 4U and not properly attached). The only reason I haven't made up my mind is that NVME drives are expensive, and I could also just buy another 3 RK1s and use the Turing Pi as a NAS, since it also has 4 NVME slots on the back (which might be more expensive).</p>
+<p><a href="https://www.reddit.com/r/pcmasterrace/comments/17xg8el/i_felt_this_meme_was_more_true_with_nvidia_than/"><p style="text-align: center"><img class="my-resp-img" src="/static/image/nvidia_meme.webp" alt="nvidia_meme" style="width: 50%"/><br><em class="text-gray">Randomly inserted NVIDIA meme from Reddit</em></p></a></p>
+<p>Finally I want to have a local environment that's powerful enough to run full-sized opensource LLM inference (e.g. <a href="https://qwenlm.github.io/blog/qwen3/">Qwen3-235B-A22B</a>, <a href="https://openai.com/index/introducing-gpt-oss/">gpt-oss-120b</a>). Some possible candidates include:</p>
+<ul>
+<li><a href="https://nvdam.widen.net/s/tlzm8smqjx/workstation-datasheet-dgx-spark-gtc25-spring-nvidia-us-3716899-web">NVIDIA DGX Spark</a> ($3999, 128G unified memory, 301G/s memory bandwidth (<a href="https://www.techpowerup.com/342321/nvidia-dgx-spark-reportedly-runs-at-half-the-power-and-performance">ref</a>), 31 TFLOPS for FP32 (<a href="https://www.techpowerup.com/342321/nvidia-dgx-spark-reportedly-runs-at-half-the-power-and-performance">ref</a>), 5.9in x 5.9in dimensions)</li>
+<li><a href="https://marketplace.nvidia.com/en-us/enterprise/personal-ai-supercomputers/?limit=15">Similar hardwares from other manufacturers equipped with NVIDIA Blackwell</a></li>
+<li><a href="https://www.apple.com/mac-studio/specs/">Apple Mac Studio</a>, 7.7in x 7.7in dimensions<ul>
+<li>M3 Ultra chip: at the same price point ($3999) has 96G unified memory, 819G/s memory bandwidth, 28.2 TFLOPS for FP23 (<a href="https://www.reddit.com/r/macgaming/comments/1m9517i/m_chip_and_gpu_tflops/">ref</a>)</li>
+<li>M3 Max chip: $1999, 36G unified memory, 410G/s memory bandwidth, 16.3 TFLOPS for FP32 (<a href="https://www.reddit.com/r/macgaming/comments/1m9517i/m_chip_and_gpu_tflops/">ref</a>)</li>
+<li>Other combinations of chip/memory is also available.</li>
+</ul>
+</li>
+<li><a href="https://www.apple.com/mac-mini/specs/">Apple Mac Mini</a> with M4 Pro: $1399, 24G unified memory, 273G/s memory bandwidth, 9.3 TFLOPS for FP32 (<a href="https://www.reddit.com/r/macgaming/comments/1m9517i/m_chip_and_gpu_tflops/">ref</a>), 5.0in x 5.0in dimensions</li>
+<li>Cheaper and less powerful options like <a href="https://marketplace.nvidia.com/en-us/enterprise/robotics-edge/?productLine=robotics-edge&amp;locale=en-us&amp;category=developer_kit&amp;page=1&amp;limit=15">NVIDIA Jetson Orin series</a></li>
+</ul>
+<p>I have always believed in the potential of OSS AI models and their ability to be self-hosted, and it's unlikely to be dominated by NVIDIA. All the above choices could fit nicely in my mini-rack, but as a long-time Apple user I might stop buying new Macbook and finally get a Mac Studio, who knows.</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>As for exactly how long time, the UPS providers are all very much cryptic about it. e.g. what does 600VA/330W mean? Just tell me a number with energy units (J or kWH) and I can calculate the time from my average demand.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>The 3D model is from <a href="https://makerworld.com/en/models/2004911-xfinity-router-wall-mount?from=search">here</a><a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Some of Jeff Geerling's videos: <a href="https://www.youtube.com/watch?v=M_Ft8OAPQ3g">NucBox G9</a>, <a href="https://www.youtube.com/watch?v=TlsIuA8rBRg&amp;t=7s">Fixing NucBox G9</a>, <a href="https://www.youtube.com/watch?v=XvaXemGDSpk&amp;t=196s">TrueNAS on Raspberry Pi</a><a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+
+<i><a class="text-secondary" style="font-size: .7rem;"
+        href="https://github.com/KevinXuxuxu/blog/blob/main/posts/Mini-Rack.md">Markdown source</a></i>
+
+<script id="giscus" src="https://giscus.app/client.js" data-repo="KevinXuxuxu/KevinXuxuxu.github.io"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkzNjU0MjE0Ng==" data-category="Announcements"
+    data-category-id="DIC_kwDOAi2Wws4Cna5N" data-mapping="title" data-strict="0" data-reactions-enabled="1"
+    data-emit-metadata="0" data-input-position="bottom" data-theme="catppuccin_latte" data-lang="en" data-loading="lazy"
+    crossorigin="anonymous" async>
+    </script>
+
+            </div>
+            <div class="column col-sm-12 col-md-2 col-4">
+                
+                
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

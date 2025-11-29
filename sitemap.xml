@@ -6,6 +6,12 @@
         <priority>1.0</priority>
     </url>
     <url>
+        <loc>https://site.fzxu.me/blog/post/Mini-Rack/</loc>
+        <lastmod>2025-11-28</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
         <loc>https://site.fzxu.me/blog/post/Reviving-My-Old-Macbook-Pro/</loc>
         <lastmod>2025-06-14</lastmod>
         <changefreq>monthly</changefreq>
@@ -138,12 +144,12 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://site.fzxu.me/blog/category/tech/</loc>
+        <loc>https://site.fzxu.me/blog/category/system/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>https://site.fzxu.me/blog/category/system/</loc>
+        <loc>https://site.fzxu.me/blog/category/tech/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
@@ -298,6 +304,11 @@
         <priority>0.5</priority>
     </url>
     <url>
+        <loc>https://site.fzxu.me/blog/tag/PoE/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
         <loc>https://site.fzxu.me/blog/tag/Private%20Cloud/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.5</priority>
@@ -418,6 +429,11 @@
         <priority>0.5</priority>
     </url>
     <url>
+        <loc>https://site.fzxu.me/blog/tag/hardware/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
         <loc>https://site.fzxu.me/blog/tag/index/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.5</priority>
@@ -449,6 +465,11 @@
     </url>
     <url>
         <loc>https://site.fzxu.me/blog/tag/npm/</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://site.fzxu.me/blog/tag/rack/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.5</priority>
     </url>
