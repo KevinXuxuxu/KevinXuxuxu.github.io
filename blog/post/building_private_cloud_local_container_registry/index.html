@@ -46,6 +46,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -209,8 +210,9 @@
 <li>Do we need authentication support? Some solution might force that as a security feature.</li>
 </ul>
 <p>Long story short, here's the overall k8s deployment config:</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
 <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
@@ -242,10 +244,11 @@
             <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/mnt/m2/shared/registry</span>
             <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Directory</span>
 </code></pre>
-</div><p>For the persistent storage, we're creating a directory <code>registry</code> in the shared NFS dir <code>/mnt/m2/shared</code>. Since no node selector is specified, we're not guaranteed to run registry on the NFS server node. As a result we should make registry have open permission<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup> to guarantee accessibility from any node. With that, we can create a <code>hostPath</code> volume on that dir and mount it into the container to <code>/var/lib/registry</code> where the registry is going to store all the images and metadata.</p>
+    </div><p>For the persistent storage, we're creating a directory <code>registry</code> in the shared NFS dir <code>/mnt/m2/shared</code>. Since no node selector is specified, we're not guaranteed to run registry on the NFS server node. As a result we should make registry have open permission<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup> to guarantee accessibility from any node. With that, we can create a <code>hostPath</code> volume on that dir and mount it into the container to <code>/var/lib/registry</code> where the registry is going to store all the images and metadata.</p>
 <p>For network access, we'll first generate SSL certificates for the registry service:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ openssl req -x509 -newkey rsa:4096 -days <span class="m">365</span> -nodes -sha256 <span class="se">\</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ openssl req -x509 -newkey rsa:4096 -days <span class="m">365</span> -nodes -sha256 <span class="se">\</span>
 -keyout certs/tls.key -out certs/tls.crt <span class="se">\</span>
 -subj <span class="s2">&quot;/CN=cr.local.example.com&quot;</span> <span class="se">\</span>
 -addext <span class="s2">&quot;subjectAltName = DNS:cr.local.example.com&quot;</span>
@@ -258,13 +261,15 @@ writing new private key to <span class="s1">&#39;certs/tls.key&#39;</span>
 $ ls
 tls.key tls.crt
 </code></pre>
-</div><p>Replace <code>cr.local.example.com</code> with the domain name you want to use for the local container registry service. Then we add this pair of cert/key to k8s secrets to be used later by Treafik ingress.</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ kubectl create secret tls registry-certs --cert<span class="o">=</span>tls.crt --key<span class="o">=</span>tls.key
+    </div><p>Replace <code>cr.local.example.com</code> with the domain name you want to use for the local container registry service. Then we add this pair of cert/key to k8s secrets to be used later by Treafik ingress.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ kubectl create secret tls registry-certs --cert<span class="o">=</span>tls.crt --key<span class="o">=</span>tls.key
 </code></pre>
-</div><p>Finally we have the k8s definition for the <code>Service</code> and <code>IngressRoute</code>, together they will use the certs and serve the registry service within the cluster.</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+    </div><p>Finally we have the k8s definition for the <code>Service</code> and <code>IngressRoute</code>, together they will use the certs and serve the registry service within the cluster.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry</span>
@@ -294,7 +299,7 @@ tls.key tls.crt
   <span class="nt">tls</span><span class="p">:</span>
     <span class="nt">secretName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry-certs</span>
 </code></pre>
-</div><p>A few things to note:</p>
+    </div><p>A few things to note:</p>
 <ul>
 <li>We use port 5000 all over the config because that's the default port for docker registry services.</li>
 <li>In Traefik <code>IngressRoute</code>, we provide the previously created secret so that Traefik can properly serve with SSL support.</li>
@@ -306,8 +311,9 @@ tls.key tls.crt
 <li>To access registry from k8s cluster, the certs need to be trusted by from the OS on each node. For Debian based OS (Ubuntu, RPiOS), copy <code>.crt</code> file to <code>/usr/local/share/ca-certificates/</code>, run <code>sudo update-ca-certificates</code> and <strong>restart the node</strong><sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup> to make it effective.</li>
 </ul>
 <p>Finally, we need to add <code>cr.local.example.com</code> to our local DNS server, so that it's accessible not only from within the cluster, but also within your home subnet. As we introduced in <a href="/blog/post/building_private_cloud_local_dns/#the_corefile">Local DNS</a>, use the following command to edit CoreDNS config file and add <code>cr.local.example.com</code> as a new host in <code>NodeHosts</code> block, and point to any node IP.</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ kubectl edit configmap coredns -n kube-system
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ kubectl edit configmap coredns -n kube-system
 <span class="c1"># opens an editor:</span>
 apiVersion: v1
 data:
@@ -321,15 +327,17 @@ data:
     <span class="m">192</span>.168.0.10 cr.local.example.com
     ...
 </code></pre>
-</div><h4 id="usage">Usage&nbsp;<a class="hidden" tabindex="-1" href="#usage" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+    </div><h4 id="usage">Usage&nbsp;<a class="hidden" tabindex="-1" href="#usage" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The usage is fairly simple. Any images that we use in the cluster, we can re-tag it and push to the local registry:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>docker tag postgres cr.local.example.com:5000/postgres
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>docker tag postgres cr.local.example.com:5000/postgres
 docker push cr.local.example.com:5000/postgres
 </code></pre>
-</div><p>In the deployment config, use the image form local registry instead of docker hub (or any public registry) version:</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps.openshift.io/v1alpha1</span>
+    </div><p>In the deployment config, use the image form local registry instead of docker hub (or any public registry) version:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps.openshift.io/v1alpha1</span>
 <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">DeploymentConfig</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="l l-Scalar l-Scalar-Plain">...</span>
@@ -343,7 +351,7 @@ docker push cr.local.example.com:5000/postgres
         <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cr.local.example.com:5000/postgres</span>
   <span class="l l-Scalar l-Scalar-Plain">...</span>
 </code></pre>
-</div><p>For any publicly available images you should be able to use the local registry as a proxy (or cache) by setting up proxy configuration (<a href="https://distribution.github.io/distribution/about/configuration/#proxy">ref</a>). But for now I'm just manually managing all the images.</p>
+    </div><p>For any publicly available images you should be able to use the local registry as a proxy (or cache) by setting up proxy configuration (<a href="https://distribution.github.io/distribution/about/configuration/#proxy">ref</a>). But for now I'm just manually managing all the images.</p>
 <p>According to my experience the image pulling speed is not significantly faster than pull from public registry, probably because my in-house network infrastructure is not in any way advanced. But it does greatly reduce the network bandwidth usage by a lot, especially when I'm constantly re-deploying images for development purposes.</p>
 <p>That's all for this post and hope you enjoyed :)</p>
 <p><em>For the list of the series of blog posts about building private cloud, click <a href="/blog/tag/Private%20Cloud/">here</a>.</em></p>

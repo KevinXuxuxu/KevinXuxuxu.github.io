@@ -48,6 +48,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -208,14 +209,15 @@
 <p>So I started writing Dockerfiles, which should be as easy as <code>FROM prom/prometheus</code> plus <code>COPY prometheus.yml /etc/prometheus</code>, where it overwrites the config file with my custom one (and same for the alert manager, and blackbox exporter is stateless). Since I already have custom config and Dockerfiles, I might as well create a Github repo for it.</p>
 <p>The problem was with the config for the alert manager (I skipped the failure of trying to make Gmail SMTP server work, so anyways I ended up with slack for notification). For some <a href="https://github.com/prometheus/alertmanager/issues/2207">not-so-obvious reason</a>, Prometheus decides not to support templating for <code>slack_api_url</code>, aka. it will not automatically render env variables into config file (which is actually <a href="https://12factor.net/config">a standard practice</a> for micro services to get config or credentials). After a long day of struggling with all the tech details, I took the liberty to hard-code my Slack webhook url into the config file, and got busted by 2 companies (I'm suspecting that Slack actually hired GitGuardian but whatever).</p>
 <p>To my defense, I do know the correct way to solve this thing, which is to write a custom templating logic into dockerfile (which is a good opportunity to pick up some shell magic):</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>ENTRYPOINT <span class="se">\</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>ENTRYPOINT <span class="se">\</span>
     sed -i <span class="s2">&quot;s=WEBHOOK_URL=</span><span class="si">${</span><span class="nv">WEBHOOK_URL</span><span class="si">}</span><span class="s2">=g&quot;</span> <span class="se">\</span>
         /etc/alertmanager/alertmanager.yml <span class="o">&amp;&amp;</span> <span class="se">\</span>
     /bin/alertmanager --config.file<span class="o">=</span>/etc/alertmanager/alertmanager.yml <span class="se">\</span>
         --storage.path<span class="o">=</span>/alertmanager
 </code></pre>
-</div><p>I think the takeaway here is that don't ever be lazy over security issues, or it's definitely going to be discovered. I'm just lucky to be discovered by some good(?) folks.</p>
+    </div><p>I think the takeaway here is that don't ever be lazy over security issues, or it's definitely going to be discovered. I'm just lucky to be discovered by some good(?) folks.</p>
 
 
 <i><a class="text-secondary" style="font-size: .7rem;"

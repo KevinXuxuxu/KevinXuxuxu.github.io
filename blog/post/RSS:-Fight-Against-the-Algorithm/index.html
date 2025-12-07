@@ -44,6 +44,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -201,8 +202,11 @@
 <p>For casual usage with already available RSS feed, all you need is a feed reader. There're many apps and platforms available<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> with convenient integration to many major social media.</p>
 <p>While I'm looking for something away from a public service provider, I settled with <a href="https://freshrss.org/index.html">FreshRSS</a>, an opensource self-hosting RSS reader with refreshing UI an simple yet complete features. The simplest deployment is just one executable and uses a local sqlite file for data storage and persistence, which is very convenient.</p>
 <p>FreshRSS is very nice to have an <a href="https://hub.docker.com/r/freshrss/freshrss">official Docker image</a> (luckily with ARM build as well), so it's fairly easy to construct a k8s Deployment and Service config to deploy it.</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;FreshRSS deployment and service k8s config</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
 <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
@@ -250,11 +254,13 @@
   <span class="nt">selector</span><span class="p">:</span>
     <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">freshrss</span>
 </code></pre>
-</div><p>As usual, I'm using <code>hostPath</code> volume for data persistence<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>, and the only 2 config needed are timezone and cron period (fetch frequency), both set by env variable. If everything goes fine, you should be able to access the service on <code>localhost:8080</code> with proper port mapping:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>kubectl port-forward svc/freshrss <span class="m">8080</span>:80
+    </div>
+</details><p>As usual, I'm using <code>hostPath</code> volume for data persistence<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup>, and the only 2 config needed are timezone and cron period (fetch frequency), both set by env variable. If everything goes fine, you should be able to access the service on <code>localhost:8080</code> with proper port mapping:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>kubectl port-forward svc/freshrss <span class="m">8080</span>:80
 </code></pre>
-</div><p>For now I'm exposing the service publicly through <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">tunnelling</a>, which allows me to access it from anywhere (to avoid the algorithms). This means I'm only depending on the user system security of FreshRSS so it's a bit risky.</p>
+    </div><p>For now I'm exposing the service publicly through <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">tunnelling</a>, which allows me to access it from anywhere (to avoid the algorithms). This means I'm only depending on the user system security of FreshRSS so it's a bit risky.</p>
 <p>Now it is already fully usable. With RSS links from public feed generator or platform natively supporting RSS, you can easily start subscribing RSS feeds. Some examples that I subscribed:</p>
 <ul>
 <li>Youtube channels can be directly added as RSS using the original channel link, e.g. <a href="https://www.youtube.com/@3blue1brown">https://www.youtube.com/@3blue1brown</a>, <a href="https://www.youtube.com/@veritasium">https://www.youtube.com/@veritasium</a></li>

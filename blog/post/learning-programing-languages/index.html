@@ -44,6 +44,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -202,8 +203,9 @@
 </ul>
 <p>This paradigm not only helps handling missing value, it could also abstract the logic for generating and collecting logs, broadcasting operations on array, and basically any complex logic you want to handle alongside the real business logic.</p>
 <p>But there is one thing that I want to solve with monad, but couldn't find a better way: the error handling logic in Go. Look at the following logic:</p>
-<div class="highlight">
-    <pre class="code" data-lang="Go"><span></span><code><span class="kd">func</span> <span class="nx">fa</span><span class="p">(</span><span class="nx">a</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="Go"><span></span><code><span class="kd">func</span> <span class="nx">fa</span><span class="p">(</span><span class="nx">a</span> <span class="kt">int</span><span class="p">)</span> <span class="p">(</span><span class="kt">int</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// does something</span>
     <span class="k">if</span> <span class="p">(</span><span class="cm">/* some condition */</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;something&quot;</span><span class="p">)</span>
@@ -237,7 +239,7 @@
 <span class="p">}</span>
 <span class="o">...</span>
 </code></pre>
-</div><p>Note that the more levels of call stack in the codebase, the more <code>nil</code> check for errors there are, and it grows linearly with your code base, which is a great distraction from the main business logic.</p>
+    </div><p>Note that the more levels of call stack in the codebase, the more <code>nil</code> check for errors there are, and it grows linearly with your code base, which is a great distraction from the main business logic.</p>
 <p>I do understand (actually quite recently) that this is <a href="https://go.dev/doc/faq#exceptions">a restriction</a> Go purposefully apply to the programmers, so that error handling will be explicitly addressed and traced in the code. It will be convenient when debugging (comparing to when writing the code) since the possible places the error emit from is explicitly found in the code instead of implicitly like when you're dealing with exceptions. But I still think the coding part could be clearer with some (maybe FP) magic.</p>
 <h4 id="memory_management">Memory Management&nbsp;<a class="hidden" tabindex="-1" href="#memory_management" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Recently I came to understand that (automatic) memory management is one of the most important things to consider when designing a modern programming language, unless the language doesn't dynamically allocate language <em>at all</em> (which really is not possible). Typically there will be a mechanism that keeps track of the dynamically allocated memory (usually organized as objects) and determine if they are still going to be used or already useless and to be cleaned. This mechanism is usually done in <a href="https://en.wikipedia.org/wiki/Reference_counting">reference counting</a>, borrow checking (like in <a href="https://rustc-dev-guide.rust-lang.org/borrow_check.html">rust</a>) or some other ways, and the useless objects will be removed either when we determine that alongside the run (which has less performance overhead), or taken care by and separate garbage collection thread/process.</p>

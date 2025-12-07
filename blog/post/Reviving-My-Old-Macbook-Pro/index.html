@@ -50,6 +50,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -214,18 +215,20 @@
 <ul>
 <li>Check for the wireless network hardware model, the important part is at the end.</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ lspci -nn -d 14e4:
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ lspci -nn -d 14e4:
 <span class="m">02</span>:00.0 Network controller <span class="o">[</span><span class="m">0280</span><span class="o">]</span>: Broadcom Inc. and subsidiaries BCM4331 <span class="m">802</span>.11a/b/g/n <span class="o">[</span>14e4:4331<span class="o">]</span> <span class="o">(</span>rev <span class="m">02</span><span class="o">)</span>
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Check the corresponding firmware package name from <a href="https://askubuntu.com/questions/55868/installing-broadcom-wireless-drivers">Broadcom Wireless Table section in this answer</a>, and install if with <code>apt</code></li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ sudo apt update
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ sudo apt update
 $ sudo apt install firmware-b43-installer linux-firmware
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Restart machine.</li>
 </ul>
 <p>Although I don't really need Wifi if I'm running it as a cluster node, it's still easier that I don't have to be pinned around my router to work on it.</p>
@@ -239,17 +242,19 @@ $ sudo apt install firmware-b43-installer linux-firmware
 </ul>
 <p>Now that my cluster have my old Macbook connected, it has officially become what they call a system with <a href="https://en.wikipedia.org/wiki/Heterogeneous_System_Architecture">Heterogeneous Architecture</a>, i.e. distributed system with multiple different compute architectures (x86_64 or amd64, and arm64) to support.</p>
 <p>This immediately brings a problem. I have a <a href="https://grafana.com/docs/loki/latest/send-data/promtail/">promtail</a> daemonset deployed in the cluster and the image is from my own container registry. Before now all my environment has been Arm based, so the promtail image is only built for Arm. As a result, the promtail pod on macbook starts to crash-loop with this (not so informative) error message<sup class="footnote-ref" id="fnref-5"><a href="#fn-5">5</a></sup>:</p>
-<div class="highlight">
-    <pre class="code" data-lang="text"><span></span><code>exec /usr/bin/sh: exec format error
+
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>exec /usr/bin/sh: exec format error
 </code></pre>
-</div><p>This means that the image arch is different from the host arch<sup class="footnote-ref" id="fnref-6"><a href="#fn-6">6</a></sup>. Luckily just like Docker Hub, my container registry (<a href="https://distribution.github.io/distribution/">CNCF Distribution Registry</a>) also supports hosting multi-arch images out-of-the-box. All I need is to find a way to port the official multi-arch image from Docker Hub to my registry.</p>
+    </div><p>This means that the image arch is different from the host arch<sup class="footnote-ref" id="fnref-6"><a href="#fn-6">6</a></sup>. Luckily just like Docker Hub, my container registry (<a href="https://distribution.github.io/distribution/">CNCF Distribution Registry</a>) also supports hosting multi-arch images out-of-the-box. All I need is to find a way to port the official multi-arch image from Docker Hub to my registry.</p>
 <p>Thankfully we have <a href="https://github.com/containers/skopeo">skopeo</a>, a commandline tool for various operations with container images and container image registries. For MacOS just do <code>brew install skopeo</code> and it can directly copy image from one registry to another without storing to local file system and with multi-arch natively supported:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>skopeo copy --all <span class="se">\</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>skopeo copy --all <span class="se">\</span>
   docker://docker.io/grafana/promtail:3.3.2 <span class="se">\</span>
   docker://cr.local.example.com:5000/grafana/promtail:3.3.2
 </code></pre>
-</div><p>After that, the image on my registry will be multi-arch, and k3s automatically chooses the image version with the correct arch depending on the target host arch, voila!</p>
+    </div><p>After that, the image on my registry will be multi-arch, and k3s automatically chooses the image version with the correct arch depending on the target host arch, voila!</p>
 <p>Ok so this solves the case when I'm just porting and using an official image with existing multi-arch support, which is the majority of the case for me. But for the cases where I build my own image, there's 2 choices:</p>
 <ul>
 <li>find a way to build/cross-build image versions for different archs and compile them together (doable but exhausting)</li>

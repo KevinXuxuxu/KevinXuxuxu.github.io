@@ -46,6 +46,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -193,15 +194,16 @@
                 
 
 <p>My previous version of <a href="/blog/post/dark_mode_support/">dark mode support</a> is not very satisfactory: the color scheme is not very crafted, refreshing page under dark mode gives a blink of light color which is annoying, and switching between two CSS files is just pure ugly. With a bit more research, I realized that the standard way of supporting multiple &quot;themes&quot; in frontend is usually done by switching between <code>data-theme</code> on the document, with different styles defined separately in a single CSS file<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup>. Something like this:</p>
-<div class="highlight">
-    <pre class="code" data-lang="css"><span></span><code><span class="nt">a</span> <span class="p">{</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="css"><span></span><code><span class="nt">a</span> <span class="p">{</span>
   <span class="k">color</span><span class="p">:</span> <span class="mh">#807fe2</span><span class="p">;</span>
 <span class="p">}</span>
 <span class="o">[</span><span class="nt">data-theme</span><span class="o">=</span><span class="s2">&quot;dark&quot;</span><span class="o">]</span> <span class="nt">a</span> <span class="p">{</span>
   <span class="k">color</span><span class="p">:</span> <span class="mh">#8c8cf3</span><span class="p">;</span>
 <span class="p">}</span>
 </code></pre>
-</div><h4 id="spectre.css">Spectre.css&nbsp;<a class="hidden" tabindex="-1" href="#spectre.css" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+    </div><h4 id="spectre.css">Spectre.css&nbsp;<a class="hidden" tabindex="-1" href="#spectre.css" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The initial plan was simple: all colors are defined in <code>_variables.scss</code> file, I should find a way to assign different values to them under different values of <code>data-theme</code> and it should just magically work. I couldn't be more wrong.</p>
 <p>There are actually 2 types of variables we're dealing with here:</p>
 <ul>
@@ -223,8 +225,9 @@
 </ul>
 <p><a href="https://github.com/KevinXuxuxu/spectre/blob/master/merge_css.py">The script</a> is available in my forked repo and is fairly straight forward.</p>
 <p>The first step is to read the diff file and get all the contiguous diff information. The script reads line by line in the diff file, using regex match for lines starting with <code>@@</code> to align line number from original file. for a segment of diff file like this:</p>
-<div class="highlight">
-    <pre class="code" data-lang="diff"><span></span><code>...
+
+    <div class="highlight">
+        <pre class="code" data-lang="diff"><span></span><code>...
 <span class="gu">@@ -286,8 +286,8 @@ html {</span>
  }
  
@@ -240,16 +243,17 @@
  }
 ...
 </code></pre>
-</div><p>It should produce an item in the result dictionary:</p>
-<div class="highlight">
-    <pre class="code" data-lang="python"><span></span><code><span class="p">{</span>
+    </div><p>It should produce an item in the result dictionary:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="python"><span></span><code><span class="p">{</span>
     <span class="s1">&#39;289&#39;</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">[</span><span class="s1">&#39;289&#39;</span><span class="p">,</span> <span class="s1">&#39;290&#39;</span><span class="p">],</span>  <span class="c1"># skip</span>
         <span class="p">[</span><span class="s1">&#39;  background: #24272b;&#39;</span><span class="p">,</span> <span class="s1">&#39;  color: #d5d5d5;&#39;</span><span class="p">]</span>  <span class="c1"># rep</span>
     <span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
-</div><p>The key is the first line number of this contiguous diff in the current file version (light mode), the value consists of 2 parts</p>
+    </div><p>The key is the first line number of this contiguous diff in the current file version (light mode), the value consists of 2 parts</p>
 <ul>
 <li>All the line numbers of this contiguous diff in the current file version (light mode), parsed from lines starting with <code>+</code></li>
 <li>All the line contents of this contiguous diff in the old file version (dark mode), parsed from lines starting with <code>-</code></li>
@@ -263,19 +267,21 @@
 <p>Previously I thought that the blink when refreshing page in dark mode is purely caused by switching between 2 CSS files instead of using <code>data-theme</code>. But after I got the result from previous script, it still blinks. Apparently the issue is caused by the time I actually start to use the correct theme.</p>
 <p>Previously I make the theme selection with <code>window.onload</code> which is obviously too late. It gets very bad with my <a href="/blog/post/cosmo:-3D-Graphics-Engine-in-Terminal/">previous post</a> which contains an 11Mb GIF. It's not a blink but full light mode before all resources are loaded.</p>
 <p>As a result, I made a bunch of changes on the <a href="https://github.com/KevinXuxuxu/blog/blob/main/static/script/color_theme.js">color_theme.js</a> script, including switching theme with</p>
-<div class="highlight">
-    <pre class="code" data-lang="javascript"><span></span><code><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s1">&#39;data-theme&#39;</span><span class="p">,</span> <span class="nx">color_theme</span><span class="p">);</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="javascript"><span></span><code><span class="nb">document</span><span class="p">.</span><span class="nx">documentElement</span><span class="p">.</span><span class="nx">setAttribute</span><span class="p">(</span><span class="s1">&#39;data-theme&#39;</span><span class="p">,</span> <span class="nx">color_theme</span><span class="p">);</span>
 </code></pre>
-</div><p>and doing that early in the header to resolve the blink issue. I also have the switch state and an emoji (🌒/🌖), so I isolated that logic, and bind with the loading of these elements (more accurately their parent <code>label</code> element):</p>
-<div class="highlight">
-    <pre class="code" data-lang="javascript"><span></span><code><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    </div><p>and doing that early in the header to resolve the blink issue. I also have the switch state and an emoji (🌒/🌖), so I isolated that logic, and bind with the loading of these elements (more accurately their parent <code>label</code> element):</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="javascript"><span></span><code><span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;DOMContentLoaded&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
     <span class="kd">const</span> <span class="nx">element</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;color-switch&quot;</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
         <span class="nx">init_color_switch</span><span class="p">();</span>
     <span class="p">}</span>
 <span class="p">});</span>
 </code></pre>
-</div><p>And now it's working perfectly, yay.</p>
+    </div><p>And now it's working perfectly, yay.</p>
 <h4 id="(maybe)_future_work">(Maybe) Future Work&nbsp;<a class="hidden" tabindex="-1" href="#(maybe)_future_work" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Since it now in a pretty decent state, it's not likely that I will spend more time on this recently. But for something to be improved, there's probably a smart way to create a &quot;function&quot; of some sort in Sass so that it automatically generate 2 versions of a section when color theme support is needed. That will save me from all that procedure, and bring the logic back to the source.</p>
 <p>Hope you enjoyed my poor writing and until next time :)</p>

@@ -48,6 +48,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -247,8 +248,9 @@
 <ul>
 <li>Run <code>lsblk</code> to list block storage devices, and check if the disk is present</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ lsblk
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ lsblk
 NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
 mmcblk0      <span class="m">179</span>:0    <span class="m">0</span> <span class="m">29</span>.1G  <span class="m">0</span> disk 
 ├─mmcblk0p1  <span class="m">179</span>:1    <span class="m">0</span>  512M  <span class="m">0</span> part /boot/firmware
@@ -257,11 +259,12 @@ mmcblk0boot0 <span class="m">179</span>:32   <span class="m">0</span>    4M  <sp
 mmcblk0boot1 <span class="m">179</span>:64   <span class="m">0</span>    4M  <span class="m">1</span> disk 
 nvme0n1      <span class="m">259</span>:0    <span class="m">0</span>  <span class="m">1</span>.9T  <span class="m">0</span> disk   <span class="c1"># &lt;-------</span>
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Note that there isn't any partition on the disk so it's not usable. Create partition on it with <code>fdisk</code> with default configurations. For a fresh new disk the commands should be <code>n</code> (for new partition), <code>p</code> (for primary partition), <code>1</code> (for just 1 partitions) and <code>w</code> (for write the changes to the disk)</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ sudo fdisk /dev/nvme0n1
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ sudo fdisk /dev/nvme0n1
 
 Welcome to fdisk <span class="o">(</span>util-linux <span class="m">2</span>.36.1<span class="o">)</span>.
 Changes will remain <span class="k">in</span> memory only, <span class="k">until</span> you decide to write them.
@@ -283,84 +286,93 @@ Command <span class="o">(</span>m <span class="k">for</span> <span class="nb">he
 The partition table has been altered.
 Syncing disks.
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Make a file system on the partition, which correspond to what we used to call &quot;format the disk&quot;</li>
 </ul>
 <blockquote>
 <p>To verify, run <code>lsblk</code> again and you should see the newly created partition under the disk.</p>
 </blockquote>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>sudo mkfs -t ext4 /dev/nvme0n1p1
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>sudo mkfs -t ext4 /dev/nvme0n1p1
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Create a mounting point for the file system and setup correct owner and permissions</li>
 </ul>
 <blockquote>
 <p>To verify, run <code>lsblk -o NAME,FSTYPE,SIZE,MOUNTPOINT</code> and check the FSTYPE column for FS format information</p>
 </blockquote>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>sudo mkdir /mnt/&lt;fs_name&gt;
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>sudo mkdir /mnt/&lt;fs_name&gt;
 sudo chown -R &lt;user&gt;:&lt;user&gt; /mnt/&lt;fs_name&gt;
 sudo chmod <span class="m">764</span> /mnt/&lt;fs_name&gt;
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>For a one-time testing, using the following command to mount the disk to the mounting point</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>mount /dev/nvme0n1p1 /mnt/&lt;fs_name&gt;
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>mount /dev/nvme0n1p1 /mnt/&lt;fs_name&gt;
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>To automatically mount on system restart, check the disk partition UUID and add the a line to <code>/etc/fstab</code></li>
 </ul>
 <blockquote>
 <p>To verify, run <code>df -h</code> which will show file system usage in all available file systems, including the newly mounted disk.</p>
 </blockquote>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ sudo blkid
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ sudo blkid
 /dev/nvme0n1p1: <span class="nv">UUID</span><span class="o">=</span><span class="s2">&quot;e3aecbef-...&quot;</span> <span class="nv">BLOCK_SIZE</span><span class="o">=</span><span class="s2">&quot;4096&quot;</span> <span class="nv">TYPE</span><span class="o">=</span><span class="s2">&quot;ext4&quot;</span> <span class="nv">PARTUUID</span><span class="o">=</span><span class="s2">&quot;...&quot;</span>
 ...
 <span class="c1"># add the following line to /etc/fstab</span>
 <span class="nv">UUID</span><span class="o">=</span>e3aecbef-...       /mnt/m2 ext4    defaults        <span class="m">1</span>       <span class="m">1</span>
 </code></pre>
-</div><h5 id="setup_nfs_server">Setup NFS Server&nbsp;<a class="hidden" tabindex="-1" href="#setup_nfs_server" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
+    </div><h5 id="setup_nfs_server">Setup NFS Server&nbsp;<a class="hidden" tabindex="-1" href="#setup_nfs_server" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
 <p>For the NAS solution, check instructions from the NAS provider (e.g. <a href="https://www.qnap.com/en-us/how-to/faq/article/how-to-enable-and-setup-host-access-for-nfs-connection">QNAP</a>) on how to host NFS server in local network and set corresponding permissions.</p>
 <p>To share a disk on one node with NFS server, check installing instructions for the corresponding linux distribution of the host (<a href="https://ubuntu.com/server/docs/service-nfs">Ubuntu</a>, <a href="https://dietpi.com/docs/software/file_servers/#nfs">DietPi</a>, etc.). Generally for any Debian based system you can install with <code>apt</code></p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>sudo apt update
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>sudo apt update
 sudo apt install nfs-kernel-server
 </code></pre>
-</div><p>Shared directories and permissions can be configured in <code>/etc/exports</code> like this:</p>
-<div class="highlight">
-    <pre class="code" data-lang="text"><span></span><code>/mnt/&lt;fs_name&gt;/shared   &lt;node1_ip&gt;(rw,sync,no_subtree_check) &lt;node2_ip&gt;(rw,sync,no_subtree_check) ...
+    </div><p>Shared directories and permissions can be configured in <code>/etc/exports</code> like this:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>/mnt/&lt;fs_name&gt;/shared   &lt;node1_ip&gt;(rw,sync,no_subtree_check) &lt;node2_ip&gt;(rw,sync,no_subtree_check) ...
 </code></pre>
-</div><p>Here I'm only giving access to other nodes in the cluster for better security. After this, run <code>sudo exportfs -a</code> to update the config to NFS server.</p>
+    </div><p>Here I'm only giving access to other nodes in the cluster for better security. After this, run <code>sudo exportfs -a</code> to update the config to NFS server.</p>
 <p>One thing to mention is that although NFS server can be controlled by <code>systemctl</code>, you will only see <code>active (exited)</code> in the service status. This doesn't mean that the NFS server failed to start or crashed. NFS service is in kernel space, not user space. As a result no active service is running in the user space, hence the status. The service you see with <code>systemctl</code> is more like a process to trigger the actual NFS server in kernel, and it successfully finished and exited.</p>
 <h5 id="mount_nfs_on_clients">Mount NFS on Clients&nbsp;<a class="hidden" tabindex="-1" href="#mount_nfs_on_clients" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h5>
 <p>Apply the following steps on all other nodes that need to access the NFS server.</p>
 <ul>
 <li>First, create the mounting point and set correct owner and permissions:</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>sudo mkdir /mnt/&lt;fs_name&gt;/shared
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>sudo mkdir /mnt/&lt;fs_name&gt;/shared
 sudo chown -R &lt;user&gt;:&lt;user&gt; /mnt/&lt;fs_name&gt;/shared
 sudo chmod <span class="m">764</span> /mnt/&lt;fs_name&gt;/shared
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>For a one-time testing, using the following command to mount the disk to the mounting point</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>mount -t nfs &lt;nfs_server_ip&gt;:/mnt/&lt;fs_name&gt;/shared /mnt/&lt;fs_name&gt;/shared
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>mount -t nfs &lt;nfs_server_ip&gt;:/mnt/&lt;fs_name&gt;/shared /mnt/&lt;fs_name&gt;/shared
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>To automatically mount on system restart, add the a line to <code>/etc/fstab</code></li>
 </ul>
 <blockquote>
 <p>Use <code>df -h</code> to verify.</p>
 </blockquote>
-<div class="highlight">
-    <pre class="code" data-lang="text"><span></span><code>&lt;nfs_server_ip&gt;:/mnt/&lt;fs_name&gt;/shared /mnt/&lt;fs_name&gt;/shared nfs     defaults,bg     0       0
+
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>&lt;nfs_server_ip&gt;:/mnt/&lt;fs_name&gt;/shared /mnt/&lt;fs_name&gt;/shared nfs     defaults,bg     0       0
 </code></pre>
-</div><p>One thing to notice is how file system permissions work across NFS servers and clients. Pay attention to <code>root_squash</code> and <code>all_squash</code> config options, and also matching user ids between server and client is something we can consider.</p>
+    </div><p>One thing to notice is how file system permissions work across NFS servers and clients. Pay attention to <code>root_squash</code> and <code>all_squash</code> config options, and also matching user ids between server and client is something we can consider.</p>
 <h4 id="benchmarking">Benchmarking&nbsp;<a class="hidden" tabindex="-1" href="#benchmarking" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>I have done a set of simple filesystem IO benchmarking with my current setup using <a href="https://github.com/akopytov/sysbench">sysbench</a>. With the <code>fileio</code> built-in test, we can easily test read/write latency/throughput under sequential or random access. Sysbench doesn't seem to have an official documentation, but you can check <a href="https://manpages.org/sysbench">this</a> on how to run and config the fileio benchmark.</p>
 <p>Here's the setup of the benchmarks:</p>

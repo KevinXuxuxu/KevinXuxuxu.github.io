@@ -50,6 +50,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -252,32 +253,36 @@
 <ul>
 <li>Run the following on all machines if <code>curl</code> is not installed.</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="Shell"><span></span><code>sudo apt update <span class="o">&amp;&amp;</span> sudo apt install -y curl
+
+    <div class="highlight">
+        <pre class="code" data-lang="Shell"><span></span><code>sudo apt update <span class="o">&amp;&amp;</span> sudo apt install -y curl
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>For rpi OS, add <code>cgroup_memory=1 cgroup_enable=memory</code> to <code>/boot/cmdline.txt</code>, before <code>rootwait</code>. OS level virtualization needs the host OS to have cgroup setup for resource isolation. For Ubuntu it should be already done.</li>
 <li>Run the following on the master node (for me it's node 1), k3s service will be installed along with useful CLIs, and service will be automatically started:</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> sh -
+
+    <div class="highlight">
+        <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> sh -
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Run the following on the agent nodes (node 2,3,4), substitute <code>myserver</code> and <code>mynodetoken</code> with your server IP and content from <code>/var/lib/rancher/k3s/server/node-token</code> on master node. k3s-agent will be be installed and automatically started and registered to master:</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> <span class="nv">K3S_URL</span><span class="o">=</span>https://myserver:6443 <span class="nv">K3S_TOKEN</span><span class="o">=</span>mynodetoken sh -
+
+    <div class="highlight">
+        <pre class="code" data-lang="Shell"><span></span><code>curl -sfL https://get.k3s.io <span class="p">|</span> <span class="nv">K3S_URL</span><span class="o">=</span>https://myserver:6443 <span class="nv">K3S_TOKEN</span><span class="o">=</span>mynodetoken sh -
 </code></pre>
-</div><p>After this the k3s cluster should be setup perfectly, and you can verify this by running <code>kubectl get nodes</code> on the master node:</p>
-<div class="highlight">
-    <pre class="code" data-lang="Shell"><span></span><code>$ kubectl get nodes
+    </div><p>After this the k3s cluster should be setup perfectly, and you can verify this by running <code>kubectl get nodes</code> on the master node:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="Shell"><span></span><code>$ kubectl get nodes
 NAME       STATUS   ROLES                  AGE    VERSION
 rpicm4n1   Ready    control-plane,master   41d    v1.28.4+k3s2
 rpicm4n2   Ready    &lt;none&gt;                 6d1h   v1.28.5+k3s1
 rpicm4n3   Ready    &lt;none&gt;                 26d    v1.28.5+k3s1
 rk1        Ready    &lt;none&gt;                 6d     v1.28.5+k3s1
 </code></pre>
-</div><p>After deployment, you should setup kubectl on your own computer for remote control of the cluster.</p>
+    </div><p>After deployment, you should setup kubectl on your own computer for remote control of the cluster.</p>
 <h4 id="conclusion">Conclusion&nbsp;<a class="hidden" tabindex="-1" href="#conclusion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>I should probably stop here because it's already a long post. But now you can play around the cluster and try different stuff (and encounter tons of blockers and give up).</p>
 <p>I will cover more detailed content in following posts, including how to utilize Traefik ingress controller, how to setup different services e.g. regular web server, DNS server (utilizing CoreDNS), network proxy service, and much more.</p>

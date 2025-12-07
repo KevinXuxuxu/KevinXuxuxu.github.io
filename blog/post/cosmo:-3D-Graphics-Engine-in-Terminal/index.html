@@ -46,6 +46,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -203,8 +204,9 @@
 <pre><code class="cosmo-display" scene="cube" dimension="60,30" framerate="24" enable-aabb=false disable-shade=false>loading failed, try refresh UwU</code></pre>
 <h4 id="terminal_rendering">Terminal Rendering&nbsp;<a class="hidden" tabindex="-1" href="#terminal_rendering" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The idea is very simple: our &quot;player&quot; should have a fixed grid of <code>char</code>, whose content will be updated every frame, and we want to refresh the screen with these characters every frame. So here it is:</p>
-<div class="highlight">
-    <pre class="code" data-lang="rust"><span></span><code><span class="k">struct</span> <span class="nc">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="rust"><span></span><code><span class="k">struct</span> <span class="nc">Player</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="n">w</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"></span>
 <span class="w">    </span><span class="n">h</span>: <span class="kt">usize</span><span class="p">,</span><span class="w"></span>
 <span class="w">    </span><span class="n">a</span>: <span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">Vec</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w"></span>
@@ -219,15 +221,16 @@
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>Note that we also have a <code>dt</code> attribute, which is computed from the framerate, It will become handy later when we involve moving objects.</p>
+    </div><p>Note that we also have a <code>dt</code> attribute, which is computed from the framerate, It will become handy later when we involve moving objects.</p>
 <p>The first problem (but quite an easy one) is how to display &quot;moving things&quot; on terminal with fixed framerate? The answer is that you need some particular control sequences from <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI escape codes</a> which can manipulate the cursor on terminal screen. Specifically we need the following two<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>:</p>
 <ul>
 <li><code>\x1B[F</code> moves the cursor up a line.</li>
 <li><code>\x1B[K</code> will clear the current line and cursor will be in the front.</li>
 </ul>
 <p>With these 2 characters, we can &quot;reprint&quot; our screen (given a fixed size we want to display) at each frame and create a moving effect. So the render method should be like this:</p>
-<div class="highlight">
-    <pre class="code" data-lang="rust"><span></span><code><span class="k">const</span><span class="w"> </span><span class="n">CURSOR_UP</span>: <span class="kp">&amp;</span><span class="kt">str</span> <span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\x1B</span><span class="s">[F&quot;</span><span class="p">;</span><span class="w"></span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="rust"><span></span><code><span class="k">const</span><span class="w"> </span><span class="n">CURSOR_UP</span>: <span class="kp">&amp;</span><span class="kt">str</span> <span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\x1B</span><span class="s">[F&quot;</span><span class="p">;</span><span class="w"></span>
 <span class="k">const</span><span class="w"> </span><span class="n">CLEAR_LINE</span>: <span class="kp">&amp;</span><span class="kt">str</span> <span class="o">=</span><span class="w"> </span><span class="s">&quot;</span><span class="se">\x1B</span><span class="s">[K&quot;</span><span class="p">;</span><span class="w"></span>
 
 <span class="c1">// ...</span>
@@ -244,10 +247,11 @@
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>Another thing to notice is that in order to get stable framerate (e.g. 24 FPS) we need to track the time taken to render each frame, and take that off from <code>dt</code> to get the actual wait time. That correspond to the load of the graphics engine. When the rendering gets more complex there might not be enough time to complete rendering within one frame, and the framerate will start to drop.</p>
+    </div><p>Another thing to notice is that in order to get stable framerate (e.g. 24 FPS) we need to track the time taken to render each frame, and take that off from <code>dt</code> to get the actual wait time. That correspond to the load of the graphics engine. When the rendering gets more complex there might not be enough time to complete rendering within one frame, and the framerate will start to drop.</p>
 <p>We will use the <a href="https://doc.rust-lang.org/std/time/index.html">std::time</a> standard lib to achieve this, and (optionally) print out live performance stats during rendering. The play method also takes in a <code>duration</code> in seconds, and stops the play after that time:</p>
-<div class="highlight">
-    <pre class="code" data-lang="rust"><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">thread</span><span class="p">;</span><span class="w"></span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="rust"><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">thread</span><span class="p">;</span><span class="w"></span>
 <span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">time</span>::<span class="n">Duration</span><span class="p">;</span><span class="w"></span>
 <span class="k">use</span><span class="w"> </span><span class="n">std</span>::<span class="n">time</span>::<span class="n">Instant</span><span class="p">;</span><span class="w"></span>
 
@@ -283,7 +287,7 @@
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>Note that we have an <code>update</code> function as TODO, which will be be the core part of our graphics engine, because it not only update the objects themselves, but also update all the &quot;pixels&quot; (or &quot;characters&quot;) of our screen.</p>
+    </div><p>Note that we have an <code>update</code> function as TODO, which will be be the core part of our graphics engine, because it not only update the objects themselves, but also update all the &quot;pixels&quot; (or &quot;characters&quot;) of our screen.</p>
 <h4 id="ray_tracing">Ray Tracing&nbsp;<a class="hidden" tabindex="-1" href="#ray_tracing" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Here comes the core part of the project: ray tracing! The basic reasoning behind this is that when we simulate a scene, all the light rays going into our eyes (or a camera) are <strong>reversible</strong>. Given that, we can trace all the light rays from the eye to objects (and possibly reflected to something else) and compute the color we're supposed to see from that ray.</p>
 <p>Since the rendering is in terminal, we only care about the intensity (or luminance) of the object, also for the simpler version we don't do any reflection and only compute the color at the intersection point (will cover that later). So the most important problem is how do we get the intersection of a ray with an object?</p>
@@ -323,8 +327,9 @@ The approach is as follows: If the point is <span class="math">\(Q\)</span>, tak
 $$</div>
 <p>If we check that for all 3 edge vectors of the triangle we'll get the answer.</p>
 <p>Putting everything together, we come up with a very simple implementation of a triangle type:</p>
-<div class="highlight">
-    <pre class="code" data-lang="rust"><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">glam</span>::<span class="n">Vec3</span><span class="p">;</span><span class="w"></span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="rust"><span></span><code><span class="k">use</span><span class="w"> </span><span class="n">glam</span>::<span class="n">Vec3</span><span class="p">;</span><span class="w"></span>
 
 <span class="k">struct</span> <span class="nc">Triangle</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 <span class="w">    </span><span class="n">a</span>: <span class="nc">Vec3</span><span class="p">,</span><span class="w"></span>
@@ -358,7 +363,7 @@ $$</div>
 <span class="w">    </span><span class="p">}</span><span class="w"></span>
 <span class="p">}</span><span class="w"></span>
 </code></pre>
-</div><p>As we're getting into the computation, we need help from some library specialized for 3D geometry. We'll use <a href="https://crates.io/crates/glam">glam</a><sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup>, a crate that provides 3D vector types and related operations with decent performance optimizations.</p>
+    </div><p>As we're getting into the computation, we need help from some library specialized for 3D geometry. We'll use <a href="https://crates.io/crates/glam">glam</a><sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup>, a crate that provides 3D vector types and related operations with decent performance optimizations.</p>
 <p>This is already pretty long and you're bored, so I'll stop here and continue in following posts, where I'll talk about the rest of the pieces to achieve a spinning cube: orthographic camera, directional lighting and rotation. All the code can be found <a href="https://github.com/KevinXuxuxu/cosmo/tree/main/rust_lite/src">here</a> and see you next time!</p>
 <section class="footnotes">
 <ol>

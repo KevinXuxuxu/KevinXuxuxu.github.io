@@ -44,6 +44,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -212,8 +213,9 @@
 </ul>
 <p>This literally blew my mind. Think about it: Given a bunch of these runners on k8s, you effectively have a powerful enough CI cluster that could do anything you would expect from e.g. Jenkins, and it has generic Github support and amazing scalability.</p>
 <p>So I followed the docs to start a runner on a &quot;droplet&quot; (chose DigitalOcean this time for a cheaper price) and quickly wrote a Github workflow definition (the &quot;config file&quot; I just mentioned) and got a prototype running. After I finished implementing my solution, here are the only two pieces of code (or config files?) I wrote:</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CI</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">CI</span>
 <span class="c1"># Controls when the workflow will run</span>
 <span class="nt">on</span><span class="p">:</span>
   <span class="c1"># Triggers the workflow on push or pull request events but only for the main branch</span>
@@ -237,9 +239,10 @@
       <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">unit test</span>
         <span class="nt">run</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">bazel test //test:all --test_output=errors</span>
 </code></pre>
-</div><p>This is the workflow definition I had, which varies very little from the example Github gave. Note that all I did was checkout the repo on a given state, and run <code>bazel test</code> for the result, since I already built this runner into my project environment with Docker.</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>FROM fzxu/nn
+    </div><p>This is the workflow definition I had, which varies very little from the example Github gave. Note that all I did was checkout the repo on a given state, and run <code>bazel test</code> for the result, since I already built this runner into my project environment with Docker.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>FROM fzxu/nn
 
 RUN mkdir actions-runner <span class="o">&amp;&amp;</span> <span class="nb">cd</span> actions-runner <span class="se">\</span>
   <span class="o">&amp;&amp;</span> curl -o actions-runner-linux-x64-2.283.3.tar.gz -L https://github.com/actions/runner/releases/download/v2.283.3/actions-runner-linux-x64-2.283.3.tar.gz <span class="se">\</span>
@@ -257,13 +260,14 @@ WORKDIR /actions-runner
 
 ENTRYPOINT ./config.sh --url https://github.com/KevinXuxuxu/NN --token <span class="nv">$TOKEN</span> <span class="o">&amp;&amp;</span> ./run.sh
 </code></pre>
-</div><p>This is the Dockerfile I used to make it instantly runnable for better scaling (probably never going to need it), and it's build upon my devops environment to be able to run any build or test easily.</p>
+    </div><p>This is the Dockerfile I used to make it instantly runnable for better scaling (probably never going to need it), and it's build upon my devops environment to be able to run any build or test easily.</p>
 <p>There's also a hack I need to confess. The runner doesn't want you to run it as a sudo user for security reasons, especially for open source projects because random PR is going to trigger runners to run possibly malicious code on your machine. While my devops environment is built with just a root user (which is probably not good), I bypassed the check just to quickly get it working since my runner runs in docker container which is already isolation (sort of). I'll put more research into this, specificly on how code within container could affect the host, how to properly not use root, and how is that safer anyways.</p>
 <h4 id="followup">Followup&nbsp;<a class="hidden" tabindex="-1" href="#followup" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>OK, they got me again. Basically the Github self-hosted actions runner is as good as supporting automatic update when there is a new version available. When the update happens, old scripts are overwritten by the new version, which makes my &quot;escape non-sudo user check&quot; hack fail.</p>
 <p>To do it the proper way, I learned now to create and switch users in Dockerfile, and this is how it looks now:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>FROM fzxu/nn
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>FROM fzxu/nn
 
 RUN adduser --disabled-password --gecos <span class="s2">&quot;&quot;</span> actions-runner
 
@@ -287,7 +291,7 @@ WORKDIR /home/actions-runner
 
 ENTRYPOINT ./config.sh --url https://github.com/KevinXuxuxu/NN --token <span class="nv">$TOKEN</span> <span class="o">&amp;&amp;</span> ./run.sh
 </code></pre>
-</div><p>Notice in this case I got rid of the custom config and run script hack, and the deployment now support automatic version upgrade.</p>
+    </div><p>Notice in this case I got rid of the custom config and run script hack, and the deployment now support automatic version upgrade.</p>
 
 
 <i><a class="text-secondary" style="font-size: .7rem;"

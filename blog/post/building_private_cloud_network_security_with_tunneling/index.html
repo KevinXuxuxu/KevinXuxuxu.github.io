@@ -48,6 +48,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -208,8 +209,9 @@
 </ul>
 <p><p style="text-align: center"><img class="my-resp-img" src="/static/image/cf_tunnel.png" alt="cloudflare_tunnel_arch" style="width: 100%"/><br><em class="text-gray">Simple Architecture of Cloudflare Tunnel</em></p></p>
 <p>General setup is pretty clearly documented in <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">the official docs</a>. For my use case, I'm using a simple deployment (not even with a service because it's not necessary) to run the client side <code>cloudflared</code> in my cluster, which has an official docker image that works perfectly fine.</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
 <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cloudflared</span>
@@ -243,23 +245,25 @@
             <span class="s">&quot;$(TOKEN)&quot;</span>
           <span class="p p-Indicator">]</span>
 </code></pre>
-</div><p>Note that similar to most cloud services, an access token is needed. As suggested <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/#1-create-a-tunnel">here</a>, the token will be generated when you create the the tunnel in the console. Here we save the token into k8s secret, and access it with env variable.<sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup></p>
+    </div><p>Note that similar to most cloud services, an access token is needed. As suggested <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-remote-tunnel/#1-create-a-tunnel">here</a>, the token will be generated when you create the the tunnel in the console. Here we save the token into k8s secret, and access it with env variable.<sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup></p>
 <p>In order to start using this I transferred my domain's nameserver (and my GF's as well) to Cloudflare, and then I could set up the proxy rules for all the subdomains to my internal service's cluster IP.</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ kubectl get services
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ kubectl get services
 NAME             TYPE        CLUSTER-IP        EXTERNAL-IP   PORT<span class="o">(</span>S<span class="o">)</span>     AGE
 kubernetes       ClusterIP   <span class="m">192</span>.168.0.1       &lt;none&gt;        <span class="m">443</span>/TCP     151d
 v2ray            ClusterIP   <span class="m">192</span>.168.40.198    &lt;none&gt;        <span class="m">10000</span>/TCP   78d
 jupyter-server   ClusterIP   <span class="m">192</span>.168.97.149    &lt;none&gt;        <span class="m">8888</span>/TCP    55d
 ...
 </code></pre>
-</div><h4 id="caveats">Caveats&nbsp;<a class="hidden" tabindex="-1" href="#caveats" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+    </div><h4 id="caveats">Caveats&nbsp;<a class="hidden" tabindex="-1" href="#caveats" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>There is a caveat that I spent quite some time getting that I think I should mention here. It is about the capability of cloudflare tunnel service. It works very well for regular public services, but <strong>mostly websites</strong> and some sort of web based services. So HTTP and HTTPS definitely works, that's why I can run my v2ray VPN service (SSL + websocket) over it (thankfully). But other types of services doesn't seem to work, at least not directly.</p>
 <p>Cloudflare is cryptic about a general way to access other types of services in their docs (probably because they want you to use their other solutions e.g. WARP, especially if you're an enterprise customer), but I figured that you'll need to run another <code>cloudflared</code> client on the other side (where you want to access your service). Something like this</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>cloudflared access tcp --hostname foo.example.com --url localhost:1234
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>cloudflared access tcp --hostname foo.example.com --url localhost:1234
 </code></pre>
-</div><p>will connect to the <code>foo</code> service which is TCP based, and (for whatever reason) create a proxy on port <code>1234</code> of client host to access. I imagine another reason is that Cloudflare doesn't want to this to be &quot;too powerful&quot; to be used by enterprise as e.g. public db service for security and cost reasons.</p>
+    </div><p>will connect to the <code>foo</code> service which is TCP based, and (for whatever reason) create a proxy on port <code>1234</code> of client host to access. I imagine another reason is that Cloudflare doesn't want to this to be &quot;too powerful&quot; to be used by enterprise as e.g. public db service for security and cost reasons.</p>
 <h4 id="future_work">Future Work&nbsp;<a class="hidden" tabindex="-1" href="#future_work" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>There're 2 other things I probably need to work to make this more of a thoroughly working solution. One is that I'm <em>manually</em> checking the cluster IPs of my internal services and adding them to the tunnel rules. This will definitely break if I do any re-deployment, at which time I'll need to reconfigure the rules again. I should probably take advantage of some load-balancer resource on top of services, or form my maintenance practice, split configuration files of services and deployments, so that they get deployed separately.</p>
 <p>Another security measurement to take is to do network lockdown for the <code>cloudflared</code> deployment. Basically I can label my internal services to be publicly accessible or not, and restrict network traffic from <code>cloudflared</code> strictly to those services. This help tighten the access control of public traffic even if there's misconfiguration of worse things happening.</p>

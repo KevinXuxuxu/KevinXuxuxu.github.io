@@ -44,6 +44,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -217,11 +218,12 @@
 <p>Ideally you should have a checkpoint file on a persistent file system that track the latest batch of data that actually successfully stored, and an auto restarting puller program should be good enough. Of course you need good monitoring and alerting to attract human attention when there's network issue etc.</p>
 <h4 id="data_model">Data model&nbsp;<a class="hidden" tabindex="-1" href="#data_model" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>The data model for this problem is quite straight forward, as we only care about number of tweets with a specific hashtag in a specific time range. A unit of data should look like this:</p>
-<div class="highlight">
-    <pre class="code" data-lang="text"><span></span><code>hashtag     time_range                              count
+
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>hashtag     time_range                              count
 #NASA       (2021-12-31 16:45, 2021-12-31 16:50)    42
 </code></pre>
-</div><p>Here the time range equals to the finest granularity we care about. If we can aggregate data over it before storage, we will have the best data efficiency we can get.</p>
+    </div><p>Here the time range equals to the finest granularity we care about. If we can aggregate data over it before storage, we will have the best data efficiency we can get.</p>
 <h4 id="database_vs._file_system">Database vs. File system&nbsp;<a class="hidden" tabindex="-1" href="#database_vs._file_system" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>It is a long lasting debate about which is more suitable for data storage: database (no matter RDBMS or NoSQL) or file like storage (plain file system, HDFS or object storage like S3). Particularly for this problem, file like storage should be a better choice for the following reasons:</p>
 <ul>
@@ -229,20 +231,22 @@
 <li><strong>Latency requirement</strong>: The use case doesn't require massive amount of low latency queries, so database with optimization over query performance is not necessary.</li>
 </ul>
 <p>So the proposed data layout should be something like data written by Spark with static partitions over different granularity:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code><span class="c1"># first 5 minutes between 16:00 and 17:00 of 2021-12-31</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code><span class="c1"># first 5 minutes between 16:00 and 17:00 of 2021-12-31</span>
 $ head data/year<span class="o">=</span><span class="m">2021</span>/month<span class="o">=</span><span class="m">12</span>/date<span class="o">=</span><span class="m">31</span>/hour<span class="o">=</span><span class="m">16</span>/0000001
 <span class="c1"># nasa  12</span>
 <span class="c1"># nexus 2</span>
 <span class="c1"># spark 1</span>
 <span class="c1"># ...</span>
 </code></pre>
-</div><p>This data layout works best with map reduce compute model like Spark, which will aggregate files just within the queried time range for best compute performance. There's further optimization built on this:</p>
+    </div><p>This data layout works best with map reduce compute model like Spark, which will aggregate files just within the queried time range for best compute performance. There's further optimization built on this:</p>
 <ul>
 <li>Add different data sinks for all possible queried granularity, and have separate ETLs to periodically aggregate data from raw (finest granularity) data to those sinks. This will greatly improve query time when the time range is as large as a few years and granularity is larger (it is unlikely to ask for data across years and still require 5 min accuracy)</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code><span class="c1"># same as above, now in the raw subdir</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code><span class="c1"># same as above, now in the raw subdir</span>
 $ head data/raw/year<span class="o">=</span><span class="m">2021</span>/month<span class="o">=</span><span class="m">12</span>/date<span class="o">=</span><span class="m">31</span>/hour<span class="o">=</span><span class="m">16</span>/0000001
 
 <span class="c1"># aggregated data for the first hour of 2021-12-31</span>
@@ -253,14 +257,15 @@ $ head data/daily/year<span class="o">=</span><span class="m">2021</span>/month<
 
 <span class="c1"># ...</span>
 </code></pre>
-</div><ul>
+    </div><ul>
 <li>Since the query only cares about one specific hashtag at a time, it would be wasteful to have to read data of all hashtags within that time range, which is exactly what we're doing now. Naturally we can do grouping based on a small hashed value of the hashtag name, and add that group id as a static partition in the file path. This will significantly reduce the data size needed to read on each query, based on how many group you created.</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code><span class="c1"># same as above, but now only contains data of hashtags that hash to asdf</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code><span class="c1"># same as above, but now only contains data of hashtags that hash to asdf</span>
 $ head data/gid<span class="o">=</span>asdf/year<span class="o">=</span><span class="m">2021</span>/month<span class="o">=</span><span class="m">12</span>/date<span class="o">=</span><span class="m">31</span>/hour<span class="o">=</span><span class="m">16</span>/0000001
 </code></pre>
-</div><p>Given what we have discussed, it would be appropriate to have data ingestion service store the data to a event queue (e.g. Kafka) and use a Spark structure streaming job to consume and preprocess the data before sink into the storage.</p>
+    </div><p>Given what we have discussed, it would be appropriate to have data ingestion service store the data to a event queue (e.g. Kafka) and use a Spark structure streaming job to consume and preprocess the data before sink into the storage.</p>
 <h4 id="query_service">Query service&nbsp;<a class="hidden" tabindex="-1" href="#query_service" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>As we mentioned that the query requirement is less strict in terms of service capacity or latency, there is still some aspect we could talk about:</p>
 <ul>

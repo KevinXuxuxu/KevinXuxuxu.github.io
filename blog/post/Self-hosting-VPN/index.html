@@ -48,6 +48,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -229,8 +230,11 @@
 <p><p style="text-align: center"><img class="my-resp-img" src="/static/image/current_v2ray.png" alt="current_v2ray" style="width: 100%"/><br><em class="text-gray">Current setup on the cluster</em></p></p>
 <p>As shown in the graph, I'm using the <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/">Cloudflare tunnel</a> to replace the web server in the last section. Obviously the Cloudflare reverse proxy service is able to handle the TLS + WebSocket traffic and properly does SSL termination. As designed, the tunnel avoid the need to somehow expose local network for direct access, greatly increases security for self-hosting from home. Note that you can host multiple services through the tunnel, so a sub-domain prefix is needed for the V2Ray service.</p>
 <p>The following is the basic k8s config for the V2Ray deployment and service:</p>
-<div class="highlight">
-    <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;v2ray deployment and service k8s config</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
 <span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
 <span class="nt">metadata</span><span class="p">:</span>
   <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
@@ -273,13 +277,15 @@
   <span class="nt">selector</span><span class="p">:</span>
     <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v2ray</span>
 </code></pre>
-</div><p>Note that the <code>v2fly/v2fly-core</code> docker image is good for all the previous solutions if you prefer a containerized way, both on client and server side. Running that with just docker installed is as easy as:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code><span class="c1"># running on host port 10000</span>
+    </div>
+</details><p>Note that the <code>v2fly/v2fly-core</code> docker image is good for all the previous solutions if you prefer a containerized way, both on client and server side. Running that with just docker installed is as easy as:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code><span class="c1"># running on host port 10000</span>
 docker run -d -p <span class="m">10000</span>:10000 -v /host-path-to-config-dir:/etc/v2ray <span class="se">\</span>
     v2fly/v2fly-core
 </code></pre>
-</div><p>For specific ways to setup and configure Cloudflare tunnel, please refer to my <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">previous post</a>.</p>
+    </div><p>For specific ways to setup and configure Cloudflare tunnel, please refer to my <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">previous post</a>.</p>
 <h4 id="conclusion">Conclusion&nbsp;<a class="hidden" tabindex="-1" href="#conclusion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>This post (sort of) concludes the history and current status of my journey of fighting against GFW in the recent years, and I hope this will help you in some way.</p>
 <p>Some following works include some possible upgrade to &quot;more advanced technology&quot; like <a href="https://guide.v2fly.org/advanced/h2.html">HTTP/2</a> or adding <a href="https://guide.v2fly.org/advanced/cdn.html">CDN</a>, and also exploring some fancy features like <a href="https://guide.v2fly.org/advanced/traffic.html">enabling traffic statistics</a> or <a href="https://guide.v2fly.org/app/balance.html#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1">load balancing</a> when there's actually more traffic.</p>

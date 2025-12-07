@@ -44,6 +44,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -198,19 +199,21 @@
 <p>The local environment setup process was pretty smooth. I transferred my important stuff (mostly code of my side projects) through ssh; downloaded and installed softwares I needed for my daily usage; and also tried something new such as <a href="https://ohmyz.sh/">oh-my-zsh</a> for a more powerful and generic <code>zsh</code> customization (I might be the last one to realise this, but Apple somehow changed default shell of Terminal from <code>bash</code> to <code>zsh</code> from OS X one or two versions ago, which fucked up my previous customization setups a little.); as a Python programmer, I also (finally) adopted <a href="https://docs.conda.io/en/latest/">conda</a> to setup my Python environments, since they seems to finally getting their shits together. So apparently after over a year of Apple M1 silicon's debut, the software eco-system is catching up pretty well.</p>
 <h3 id="devops_with_docker">Devops with Docker&nbsp;<a class="hidden" tabindex="-1" href="#devops_with_docker" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
 <p>Here comes the harder part: most of my side projects works with a container as the devops environment, which (of course) are all built over the x86 arch (specifically x86_64, but we'll get to that later). I did try to run the docker image I built earlier, which does started with a unsettling warning:</p>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code>$ docker run -it fzxu/nn-amd64 /bin/bash
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code>$ docker run -it fzxu/nn-amd64 /bin/bash
 <span class="c1"># WARNING: The requested image&#39;s platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested</span>
 root@6dec62b3afc0:/nn#
 </code></pre>
-</div><p>And it doesn't really work well after further testing. So the only logical choice left for me is to build same image (or images for the same purpose) towards different target architectures.</p>
+    </div><p>And it doesn't really work well after further testing. So the only logical choice left for me is to build same image (or images for the same purpose) towards different target architectures.</p>
 <h4 id="problem_with_pip">Problem with pip&nbsp;<a class="hidden" tabindex="-1" href="#problem_with_pip" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Ideally if you basically uses dependency/package managers (e.g. apt, pip, npm) to install things in Dockerfile, you would expect to use the same Dockerfile to build images with different target archs, and hopefully the package managers will automatically deal with the archs issue for you.</p>
 <p>But I run into a strange problem when installing <code>notebook</code> with <code>pip</code>, which I'm not sure if it's specifically because of Apple silicon or it's a general arm issue:</p>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code><span class="nb">command</span> <span class="s1">&#39;aarch64-linux-gnu-gcc&#39;</span> failed with <span class="nb">exit</span> status <span class="m">1</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code><span class="nb">command</span> <span class="s1">&#39;aarch64-linux-gnu-gcc&#39;</span> failed with <span class="nb">exit</span> status <span class="m">1</span>
 </code></pre>
-</div><p>I struggled for a whole day on this, and eventually rewrite my Dockerfile to use <a href="https://docs.conda.io/en/latest/miniconda.html"><code>miniconda</code></a> as a replacement for <code>pip</code>. While awkward as it is, as I'm trying to reproduce this error as I'm writing this blog, this issue seems to be mitigated and I don't know what my reactions should be now.</p>
+    </div><p>I struggled for a whole day on this, and eventually rewrite my Dockerfile to use <a href="https://docs.conda.io/en/latest/miniconda.html"><code>miniconda</code></a> as a replacement for <code>pip</code>. While awkward as it is, as I'm trying to reproduce this error as I'm writing this blog, this issue seems to be mitigated and I don't know what my reactions should be now.</p>
 <h4 id="general_solution_with_<code>docker_manifest</code>">General solution with <code>docker manifest</code>&nbsp;<a class="hidden" tabindex="-1" href="#general_solution_with_<code>docker_manifest</code>" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>On the other hand, if your docker image depend on some particular arch sensitive binary (e.g. my <a href="https://docs.bazel.build/versions/main/install-ubuntu.html#install-on-ubuntu">bazel installation</a>), you'll need to do something clever to either render in the arch info or just use different Dockerfiles. After that, you should be able to build images for different archs <strong>under different tag</strong>.</p>
 <p>But what I wanted is to host images for different archs under the same docker image tag and be able to serve automatically according to host platform, something like <a href="https://hub.docker.com/_/ubuntu?tab=tags">this</a> (note that it has images for different archs under same tag).</p>
@@ -218,37 +221,42 @@ root@6dec62b3afc0:/nn#
 <ol>
 <li>Build different images for different archs under different image name or tag, you should be able use docker's cross-platform build feature with <code>buildx</code></li>
 </ol>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code>docker buildx build --platform linux/amd64 -t fzxu/blog:x86 -f Dockerfile_x86 .
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code>docker buildx build --platform linux/amd64 -t fzxu/blog:x86 -f Dockerfile_x86 .
 docker buildx build --platform linux/arm64 -t fzxu/blog:arm -f Dockerfile_arm .
 </code></pre>
-</div><ol start="2">
+    </div><ol start="2">
 <li>Push both images onto a registry in order to generate local manifest file</li>
 </ol>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code>docker push fzxu/blog:x86
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code>docker push fzxu/blog:x86
 docker push fzxu/blog:arm
 </code></pre>
-</div><ol start="3">
+    </div><ol start="3">
 <li>Use <code>docker manifest inspect</code> to check their manifests</li>
 </ol>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code>docker manifest inspect fzxu/blog:x86
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code>docker manifest inspect fzxu/blog:x86
 docker manifest inspect fzxu/blog:arm
 </code></pre>
-</div><ol start="4">
+    </div><ol start="4">
 <li>Use <code>docker manifest create</code> to associate the images to a single tag (empty for <code>latest</code>)</li>
 </ol>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code>docker manifest create fzxu/blog fzxu/blog:x86 fzxu/blog:arm
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code>docker manifest create fzxu/blog fzxu/blog:x86 fzxu/blog:arm
 </code></pre>
-</div><ol start="5">
+    </div><ol start="5">
 <li>Use <code>docker manifest push</code> to push it to registry</li>
 </ol>
-<div class="highlight">
-    <pre class="code" data-lang="bash"><span></span><code>docker manifest push fzxu/blog
+
+    <div class="highlight">
+        <pre class="code" data-lang="bash"><span></span><code>docker manifest push fzxu/blog
 </code></pre>
-</div><p>Finally you'll get the multi-arch support under a single tag like <a href="https://hub.docker.com/r/fzxu/blog/tags">this</a>. I spent quite some time on building multi-arch support for my docker images that I'm using (github ci server, v2ray server, etc.). The reason for this effort other than my shiny new MBP is that I want to start using AWS EC2 spot t4g instances for a (much) <a href="https://aws.amazon.com/ec2/spot/pricing/">better price</a>, and t4g (<code>g</code> for <a href="https://aws.amazon.com/ec2/graviton/">Graviton</a>) is based on arm arch. I'll (probably) have another blog to talk about my cloud solution visions since it's off topic for this post, but that's it for today and thanks for reading.</p>
+    </div><p>Finally you'll get the multi-arch support under a single tag like <a href="https://hub.docker.com/r/fzxu/blog/tags">this</a>. I spent quite some time on building multi-arch support for my docker images that I'm using (github ci server, v2ray server, etc.). The reason for this effort other than my shiny new MBP is that I want to start using AWS EC2 spot t4g instances for a (much) <a href="https://aws.amazon.com/ec2/spot/pricing/">better price</a>, and t4g (<code>g</code> for <a href="https://aws.amazon.com/ec2/graviton/">Graviton</a>) is based on arm arch. I'll (probably) have another blog to talk about my cloud solution visions since it's off topic for this post, but that's it for today and thanks for reading.</p>
 
 
 <i><a class="text-secondary" style="font-size: .7rem;"

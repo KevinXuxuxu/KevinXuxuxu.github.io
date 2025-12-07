@@ -48,6 +48,7 @@
     <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
     <link rel="stylesheet" href="/static/style/pygments_style.css">
     <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
     <script>
         window.addEventListener('load', function () { window.loaded = true; });
     </script>
@@ -213,15 +214,17 @@
 <li>For a fresh linux machine with just the graphics card driver, you need to install the CUDA libs and dependencies, and this should be on the OS itself, now within one conda environment. Follow this instruction and it might work: <a href="https://developer.nvidia.com/cuda-downloads?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=22.04&amp;target_type=deb_local">https://developer.nvidia.com/cuda-downloads?target_os=Linux&amp;target_arch=x86_64&amp;Distribution=Ubuntu&amp;target_version=22.04&amp;target_type=deb_local</a></li>
 <li>You need to use the nightly version of Pytorch to be able to <a href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">compile model</a> which is used by nanoGPT. So for my case use this to install pytorch:</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>conda install pytorch torchvision torchaudio pytorch-cuda<span class="o">=</span><span class="m">11</span>.8 <span class="se">\</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>conda install pytorch torchvision torchaudio pytorch-cuda<span class="o">=</span><span class="m">11</span>.8 <span class="se">\</span>
   -c pytorch-nightly -c nvidia
 </code></pre>
-</div><h4 id="training">Training&nbsp;<a class="hidden" tabindex="-1" href="#training" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+    </div><h4 id="training">Training&nbsp;<a class="hidden" tabindex="-1" href="#training" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Use the <code>prepare.py</code> script in each folder of <code>data/</code> to download and prepare the data into a binary file which will be directly used for training and validation. The prepare time mainly depend on which dataset you're using (open web text is pretty large) and your network speed.</p>
 <p>The training part is also pretty straight forward. Most parameters I have touched are selecting data set, and the ones that controls the model size and data batch size:</p>
-<div class="highlight">
-    <pre class="code" data-lang="shell"><span></span><code>$ python train.py --dataset<span class="o">=</span>openwebtext <span class="se">\ </span> <span class="c1"># dataset to use</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="shell"><span></span><code>$ python train.py --dataset<span class="o">=</span>openwebtext <span class="se">\ </span> <span class="c1"># dataset to use</span>
     --n_layer<span class="o">=</span><span class="m">10</span> --n_head<span class="o">=</span><span class="m">10</span> --n_embd<span class="o">=</span><span class="m">500</span> <span class="se">\ </span> <span class="c1"># parameters to determine model size</span>
     --block_size<span class="o">=</span><span class="m">256</span> --batch_size<span class="o">=</span><span class="m">12</span>  <span class="c1"># parameters to determine block/batch size</span>
 Overriding: <span class="nv">dataset</span> <span class="o">=</span> openwebtext
@@ -240,7 +243,7 @@ iter <span class="m">1</span>: loss <span class="m">10</span>.9264, <span class=
 iter <span class="m">2</span>: loss <span class="m">10</span>.9129, <span class="nb">time</span> <span class="m">367</span>.66ms
 ...
 </code></pre>
-</div><h4 id="parameter_tuning">Parameter Tuning&nbsp;<a class="hidden" tabindex="-1" href="#parameter_tuning" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+    </div><h4 id="parameter_tuning">Parameter Tuning&nbsp;<a class="hidden" tabindex="-1" href="#parameter_tuning" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>I'm not going to talk about some fancy tuning since I'm a noob. The parameter tuning I was doing mostly focused on a more practical sense: to get the training running with limited resources (mostly VRAM). My 3070 comes with around 8G of VRAM and the training get to use around 6G practically speaking, which is not a lot. So I need to tune the parameters (mostly those determines the model size and those determines the data size feed into the model) to get the good balance between memory usage and model quality.</p>
 <p>I did some experiments to get the stable training VRAM usage with different set of parameters, and here's the result (Data points (n_layer, n_head, n_embd), n_params, (block_size, batch_size) -&gt; stable VRAM usage during training)</p>
 <ul>
@@ -252,17 +255,21 @@ iter <span class="m">2</span>: loss <span class="m">10</span>.9129, <span class=
 Note that the dataset used for the above experiments are all open web test, as the shakespeare dataset is too small.</li>
 </ul>
 <p>If we assume <code>x</code> is the number of parameters (in millions), <code>y</code> is the number of datapoint in a batch (block_size * batch_size) and <code>z</code> is the VRAM it takes to train (in MB), here is a very simple fit from my data:</p>
-<div class="highlight">
-    <pre class="code" data-lang="Python"><span></span><code><span class="mf">42.65</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">0.93</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mf">766.86</span> <span class="o">=</span> <span class="n">z</span>
+
+    <div class="highlight">
+        <pre class="code" data-lang="Python"><span></span><code><span class="mf">42.65</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="mf">0.93</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="mf">766.86</span> <span class="o">=</span> <span class="n">z</span>
 </code></pre>
-</div><p>(BTW the python code I used to fit this data is generated by chatGPT! I'm doing other interesting things on that idea and will definitely write about it later.)</p>
+    </div><p>(BTW the python code I used to fit this data is generated by chatGPT! I'm doing other interesting things on that idea and will definitely write about it later.)</p>
 <h4 id="result_evaluation">Result Evaluation&nbsp;<a class="hidden" tabindex="-1" href="#result_evaluation" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>I wrote a <a href="https://github.com/KevinXuxuxu/nanoGPT/blob/master/inter_prompt.py">interactive prompt script</a> which is modified from Karpathy's original <a href="https://github.com/karpathy/nanoGPT/blob/master/sample.py">sample script</a>. THe interactive prompt provides a more user-friendly evaluation experience. Here are some result from the 2 dataset I trained on:</p>
 <ul>
 <li>Shakespeare dataset, 3.42M parameters, trained for an hours, didn't record final loss</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="text"><span></span><code>prompt: ROMEO:
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;Inference result for Shakespeare</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>prompt: ROMEO:
 ROMEO:
 O, daughter, for I have, I know not the wrong
 About his house.
@@ -317,12 +324,16 @@ That is no traitor to the law, not garland
 That he didhard heard his man that stoop
 ToThat
 </code></pre>
-</div><p>The result does look like Shakespeare writing, except that it doesn't make sense for the most time. For example although we see Juliet show up in the result from &quot;ROMEO&quot; prompt, we also see e.g. DUKE VINCENTIO which is actually from &quot;Measure for Measure&quot; instead of &quot;Romeo and Juliet&quot;.</p>
+    </div>
+</details><p>The result does look like Shakespeare writing, except that it doesn't make sense for the most time. For example although we see Juliet show up in the result from &quot;ROMEO&quot; prompt, we also see e.g. DUKE VINCENTIO which is actually from &quot;Measure for Measure&quot; instead of &quot;Romeo and Juliet&quot;.</p>
 <ul>
 <li>Open web text dataset, 55.19M parameters, Trained for ~6h, final loss 3.9:</li>
 </ul>
-<div class="highlight">
-    <pre class="code" data-lang="text"><span></span><code>prompt: Recipe for lasagna:
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;Inference result for generating recipe</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>prompt: Recipe for lasagna:
 Recipe for lasagna:
 
 (1) Spicy and piquadas
@@ -374,7 +385,8 @@ For example, I wrote “FIFAN,” which includes the “real-world” and
 normal recall, but as such is generally the case when large-scale recall
 ---------------
 </code></pre>
-</div><p>Same as above, the result seems like normal writing, just doesn't make much sense. In the recipe prompt example, it want to put chocolate in lasagna, and there're 2 cumin and 3 basil in the list. In the international news example, it made up some places (e.g. al-Aqsa hospital, Asm Talm) that doesn't exist at all. For the last example, I picked the beginning of a paragraph from the famous <a href="http://incompleteideas.net/papers/sutton-88-with-erratum.pdf">Sutton 1988 RL paper</a>, but the generated content seems to be talking about some sort of information retrieval research?</p>
+    </div>
+</details><p>Same as above, the result seems like normal writing, just doesn't make much sense. In the recipe prompt example, it want to put chocolate in lasagna, and there're 2 cumin and 3 basil in the list. In the international news example, it made up some places (e.g. al-Aqsa hospital, Asm Talm) that doesn't exist at all. For the last example, I picked the beginning of a paragraph from the famous <a href="http://incompleteideas.net/papers/sutton-88-with-erratum.pdf">Sutton 1988 RL paper</a>, but the generated content seems to be talking about some sort of information retrieval research?</p>
 <p>Overall these models did well to generate content that resembles a certain kind of text, but did very poor when we look into details. I might get better results if I train for longer time to bring the loss under 2 (which I'll try sometime), and/or to train with more parameters which would require better hardware.</p>
 <h4 id="future_plan">Future Plan&nbsp;<a class="hidden" tabindex="-1" href="#future_plan" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
 <p>Although the resulting model is hardly usable and close to garbage, I still find this experience exciting, since it utilized my graphics card and gives a good exposure to the latest and most popular technology of the day. I'm going to try to finish the online course by Karpathy and learn to fine tune the GPT model and try to train something useful with custom corpus.</p>
