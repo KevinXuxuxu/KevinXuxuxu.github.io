@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="fzxu">
+    <meta name="robots" content="index, follow">
+    
+<meta name="keywords" content="Private Cloud, Storage, NAS, NFS, k8s, Monitoring, tech">
+<link rel="canonical" href="https://site.fzxu.me/blog/post/building_private_cloud_nfs_done_right/">
+
+<!-- Open Graph tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Building Private Cloud: NFS Done Right">
+<meta property="og:url" content="https://site.fzxu.me/blog/post/building_private_cloud_nfs_done_right/">
+<meta property="og:site_name" content="fzxu's Blog">
+
+<meta property="og:image" content="https://site.fzxu.me/static/image/nfs_pvc_thumbnail.png">
+
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="fzxu">
+<meta property="article:published_time" content="2025-12-06 15:31:47">
+<meta property="article:section" content="tech">
+
+<meta property="article:tag" content="Private Cloud">
+
+<meta property="article:tag" content="Storage">
+
+<meta property="article:tag" content="NAS">
+
+<meta property="article:tag" content="NFS">
+
+<meta property="article:tag" content="k8s">
+
+<meta property="article:tag" content="Monitoring">
+
+
+<!-- Twitter Card tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Building Private Cloud: NFS Done Right">
+
+<meta name="twitter:image" content="https://site.fzxu.me/static/image/nfs_pvc_thumbnail.png">
+
+
+
+    <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
+    <link rel="stylesheet" href="/static/style/pygments_style.css">
+    <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
+    <script>
+        window.addEventListener('load', function () { window.loaded = true; });
+    </script>
+
+    <script src="/static/script/color_theme.js"></script>
+    <script>
+        init_color_theme();
+
+        // Manual responsive for blog images
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.innerWidth < 768) {
+                const elements = document.getElementsByClassName("my-resp-img");
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].style.width = "90%";
+                }
+            }
+        });
+    </script>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<title>Building Private Cloud: NFS Done Right - fzxu's Blog</title>
+
+<style>
+    /* Initially hide the element */
+    .hidden {
+        display: none;
+    }
+
+    /* Show the element when it's hovered over */
+    h3:hover .hidden {
+        display: inline-block;
+    }
+
+    h4:hover .hidden {
+        display: inline-block;
+    }
+
+    h5:hover .hidden {
+        display: inline-block;
+    }
+</style>
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Building Private Cloud: NFS Done Right",
+  "author": {
+    "@type": "Person",
+    "name": "fzxu",
+    "url": "https://site.fzxu.me/"
+  },
+  "datePublished": "2025-12-06 15:31:47",
+  "dateModified": "2025-12-06 15:31:47",
+  "url": "https://site.fzxu.me/blog/post/building_private_cloud_nfs_done_right/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://site.fzxu.me/blog/post/building_private_cloud_nfs_done_right/"
+  },
+  
+  "image": "https://site.fzxu.me/static/image/nfs_pvc_thumbnail.png",
+  
+  "publisher": {
+    "@type": "Person",
+    "name": "fzxu",
+    "url": "https://site.fzxu.me/"
+  },
+  "keywords": "Private Cloud, Storage, NAS, NFS, k8s, Monitoring",
+  "articleSection": "tech",
+  "description": "Building Private Cloud: NFS Done Right - A technical blog post by fzxu covering tech topics."
+}
+</script>
+
+</head>
+
+<body>
+    <div class="main container grid-lg">
+        <header class="navbar" style="margin-bottom: 2.5em;">
+            <section class="navbar-section">
+            </section>
+            <section class="navbar-section">
+                <label id="color-switch" class="form-switch">
+                    <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
+                    <i class="form-icon"></i> <span id="moon">⏳</span>
+                </label>
+                <a href="https://github.com/KevinXuxuxu"><svg height="1.1em" width="1.1em" viewBox="0 0 32 32"
+                        class="nav-icon" xml:space="preserve">
+                        <title>Github</title>
+                        <path clip-rule="evenodd"
+                            d="M16.003,0C7.17,0,0.008,7.162,0.008,15.997  c0,7.067,4.582,13.063,10.94,15.179c0.8,0.146,1.052-0.328,1.052-0.752c0-0.38,0.008-1.442,0-2.777  c-4.449,0.967-5.371-2.107-5.371-2.107c-0.727-1.848-1.775-2.34-1.775-2.34c-1.452-0.992,0.109-0.973,0.109-0.973  c1.605,0.113,2.451,1.649,2.451,1.649c1.427,2.443,3.743,1.737,4.654,1.329c0.146-1.034,0.56-1.739,1.017-2.139  c-3.552-0.404-7.286-1.776-7.286-7.906c0-1.747,0.623-3.174,1.646-4.292C7.28,10.464,6.73,8.837,7.602,6.634  c0,0,1.343-0.43,4.398,1.641c1.276-0.355,2.645-0.532,4.005-0.538c1.359,0.006,2.727,0.183,4.005,0.538  c3.055-2.07,4.396-1.641,4.396-1.641c0.872,2.203,0.323,3.83,0.159,4.234c1.023,1.118,1.644,2.545,1.644,4.292  c0,6.146-3.74,7.498-7.304,7.893C19.479,23.548,20,24.508,20,26c0,2,0,3.902,0,4.428c0,0.428,0.258,0.901,1.07,0.746  C27.422,29.055,32,23.062,32,15.997C32,7.162,24.838,0,16.003,0z"
+                            fill="#181616" fill-rule="evenodd" />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                    </svg></a>
+                <a href="/feed.xml"><svg height="1.1em" width="1.1em" viewBox="0 0 20 22" xml:space="preserve"
+                        class="nav-icon">
+                        <title>RSS feed</title>
+                        <path
+                            d="M6.002,15.999C4.895,15.999,3.998,16.896,4,18c0,1.104,0.896,2.001,2.002,1.999C7.105,20.001,8.002,19.105,8,18  C8.002,16.893,7.105,15.997,6.002,15.999z" />
+                        <path
+                            d="M6,4C4.896,4,4,4.896,4,6s0.896,2,2,2c5.514,0,10,4.486,10,10c0,1.104,0.896,2,2,2s2-0.896,2-2C20,10.28,13.72,4,6,4z" />
+                        <path
+                            d="M6,10c-1.104,0-2,0.896-2,2s0.896,2,2,2c2.205,0,4,1.794,4,4c0,1.104,0.896,2,2,2s2-0.896,2-2C14,13.589,10.411,10,6,10z" />
+                    </svg></a>
+            </section>
+        </header>
+        <header class="column col-sm-12 col-md-10 col-8">
+            
+<figure class="avatar avatar-sm">
+    <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+</figure>&nbsp;
+<a href="/">fzxu's Blog</a>
+<h1 class="heading-index">Building Private Cloud: NFS Done Right</h1>
+
+<p class="text-gray">
+    <small>2025-12-06 15:31:47</small>
+    <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Storage/" class="text-dark">Storage</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/NAS/" class="text-dark">NAS</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/NFS/" class="text-dark">NFS</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/k8s/" class="text-dark">k8s</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Monitoring/" class="text-dark">Monitoring</a></span>
+    
+</p>
+
+        </header>
+
+        <main class="content columns">
+            <div class="column col-sm-12 col-md-10 col-8">
+                
+
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/nfs_pvc_thumbnail.png" alt="nfs_pvc_thumbnail" style="width: 60%"/><br><em class="text-gray">(Nano Banana Pro generated) thumbnail</em></p></p>
+<p>For some <a href="/blog/post/building_private_cloud_storage_solution/">context</a>, my previous storage solution is to have a 2T SSD attached to one node<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> in the cluster, and use NFS to mount it onto the same directory of every other nodes. This way I can use <code>hostPath</code> k8s volume into that directory without caring about which node the pod is provisioned on.</p>
+<p>This worked kind of OK for a while, serving the majority of my use cases with decent <a href="/blog/post/building_private_cloud_storage_solution/#benchmarking">performance</a>. But it has always been a suboptimal solution in my opinion for 2 main reasons:</p>
+<ul>
+<li>This seems a bit too manual. What if some node fails to mount NFS? What if every node fail to mount after a cluster reboot? Why not let k8s deal with this since I'm already running a k8s cluster?<sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup></li>
+<li>I was never able to fully understand how FS permissions work with mounted NFS directories, plus how that works with a k8s container running on that host. This results in quite a few sloppy (or just frankly dangerous) cases of exposed application directories, and they become more and more uncomfortable for me.</li>
+</ul>
+<p>Finally I got rid of my ego and humbly asked Claude™ for some advice, and it turns out that k8s already works with NFS-backed volumes out-of-the-box! There're 2 options with different benefits and limitations, and let's get into them one by one.</p>
+<h3 id="nfs_provisioner">NFS Provisioner&nbsp;<a class="hidden" tabindex="-1" href="#nfs_provisioner" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>The NFS provisioner is a deployed program in k8s, that will connect and mount volumes for each pod in need, with necessary information about your NFS server. This is the &quot;heavier&quot; and more managed solution, which is a good replacement for my existing solution. Here's a step-by-step guide of how to set it up.</p>
+<ol>
+<li>Make sure you have a properly configured NFS server available, if not you can follow <a href="/blog/post/building_private_cloud_storage_solution/#setup_nfs_server">this section</a> to setup. Additionally you should add <code>no_root_squash</code> for all the <code>/etc/exports</code> configs you add, e.g.</li>
+</ol>
+
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>/nfs/path/to/share   &lt;node1_ip&gt;(rw,sync,no_subtree_check,no_root_squash) &lt;node2_ip&gt;(rw,sync,no_subtree_check,no_root_squash) ...
+</code></pre>
+    </div><ol start="2">
+<li>For the most boring part of k8s (Roles and Auth), Claude is very kind to generate this set of config. A specific set of permissions are given to the service account, which will be used by the NFS provisioner. Note that all these are in a separated namespace <code>nfs-provisioner</code>, you can config otherwise as you wish.</li>
+</ol>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;k8s account/role/auth configs</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-provisioner</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner-runner</span>
+<span class="nt">rules</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">apiGroups</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">resources</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;nodes&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">verbs</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;list&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;watch&quot;</span><span class="p p-Indicator">]</span>
+  <span class="p p-Indicator">-</span> <span class="nt">apiGroups</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">resources</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;persistentvolumes&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">verbs</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;list&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;watch&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;create&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;delete&quot;</span><span class="p p-Indicator">]</span>
+  <span class="p p-Indicator">-</span> <span class="nt">apiGroups</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">resources</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;persistentvolumeclaims&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">verbs</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;list&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;watch&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;update&quot;</span><span class="p p-Indicator">]</span>
+  <span class="p p-Indicator">-</span> <span class="nt">apiGroups</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;storage.k8s.io&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">resources</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;storageclasses&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">verbs</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;list&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;watch&quot;</span><span class="p p-Indicator">]</span>
+  <span class="p p-Indicator">-</span> <span class="nt">apiGroups</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">resources</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;events&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">verbs</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;create&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;update&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;patch&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ClusterRoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">run-nfs-client-provisioner</span>
+<span class="nt">subjects</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+    <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-provisioner</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ClusterRole</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner-runner</span>
+  <span class="nt">apiGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Role</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">leader-locking-nfs-client-provisioner</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-provisioner</span>
+<span class="nt">rules</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">apiGroups</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">resources</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;endpoints&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">verbs</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;get&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;list&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;watch&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;create&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;update&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;patch&quot;</span><span class="p p-Indicator">]</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">RoleBinding</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">leader-locking-nfs-client-provisioner</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-provisioner</span>
+<span class="nt">subjects</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ServiceAccount</span>
+    <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+    <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-provisioner</span>
+<span class="nt">roleRef</span><span class="p">:</span>
+  <span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Role</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">leader-locking-nfs-client-provisioner</span>
+  <span class="nt">apiGroup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rbac.authorization.k8s.io</span>
+</code></pre>
+    </div>
+</details><ol start="3">
+<li>Add the NFS provisioner deployment and corresponding storage class. The logic of provisioning space (create directory), mount to pods and manage connections are all in this deployment. The storage class is used to create PVC from this provisioner, where we define a pattern for the mounted directory path for each PVC.</li>
+</ol>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;NFS provisioner deployment and storage class k8s config</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-provisioner</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">strategy</span><span class="p">:</span>
+    <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Recreate</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">serviceAccountName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-provisioner</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">registry.k8s.io/sig-storage/nfs-subdir-external-provisioner:v4.0.2</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-root</span>
+              <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/persistentvolumes</span>
+          <span class="nt">env</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PROVISIONER_NAME</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-storage</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">NFS_SERVER</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;nfs_server_ip&gt;</span>  <span class="c1"># &lt;- replace</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">NFS_PATH</span>
+              <span class="nt">value</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/path/to/root/dir</span>  <span class="c1"># &lt;- replace</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-client-root</span>
+          <span class="nt">nfs</span><span class="p">:</span>
+            <span class="nt">server</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;nfs_server_ip&gt;</span>  <span class="c1"># &lt;- replace</span>
+            <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/path/to/root/dir</span>  <span class="c1"># &lt;- replace</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">storage.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">StorageClass</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-storage</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">storageclass.kubernetes.io/is-default-class</span><span class="p">:</span> <span class="s">&quot;true&quot;</span>
+<span class="nt">provisioner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-storage</span>
+<span class="nt">parameters</span><span class="p">:</span>
+  <span class="nt">archiveOnDelete</span><span class="p">:</span> <span class="s">&quot;false&quot;</span>
+  <span class="nt">pathPattern</span><span class="p">:</span> <span class="s">&quot;${.PVC.namespace}/${.PVC.name}&quot;</span>
+</code></pre>
+    </div>
+</details><ol start="4">
+<li>Finally we can define and use the PVC in the following way:</li>
+</ol>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;PVC and application deployment example k8s config</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-pvc</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">default</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">storageClassName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-storage</span>
+  <span class="nt">accessModes</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ReadWriteMany</span>
+  <span class="nt">resources</span><span class="p">:</span>
+    <span class="nt">limits</span><span class="p">:</span>
+      <span class="nt">storage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">256Gi</span>
+    <span class="nt">requests</span><span class="p">:</span>
+      <span class="nt">storage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">64Gi</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">...</span>
+  <span class="l l-Scalar l-Scalar-Plain">template</span><span class="p p-Indicator">:</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-app</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
+          <span class="l l-Scalar l-Scalar-Plain">...</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-data</span>
+              <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-data</span>
+          <span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+            <span class="nt">claimName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">my-pvc</span>
+</code></pre>
+    </div>
+</details><p>With the above setup as an example, the actually mounted path from the NFS host will be <code>/path/to/root/dir/default/my-pvc</code>. The overall directory structure will look like this:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="text"><span></span><code>/path/to/root/dir
+├── namespace1/
+│   ├── pvc-name1/
+│   │   └── [your application files]
+│   └── pvc-name2/
+│       └── [your application files]
+├── namespace2/
+│   ├── app-data/
+│   │   └── [your application files]
+│   └── database-storage/
+│       └── [your application files]
+└── default/
+    └── test-pvc/
+        └── test.txt
+</code></pre>
+    </div><p>As a drop-in replacement for my original solution, I still need a reliable procedure to migrate existing use cases onto the new setup. To do that, I use a k8s job like this:</p>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;k8s job to migrate an example app</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-migration</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-migration</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicas</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-migration</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-migration</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-migrationtea</span>
+          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;same-image-as-the-original-app&gt;</span>
+          <span class="nt">imagePullPolicy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Always</span>
+          <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;/bin/sh&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;-c&quot;</span><span class="p p-Indicator">]</span>
+          <span class="nt">args</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="p p-Indicator">|</span>
+            <span class="no"># Copy existing data from old storage to PVC</span>
+            <span class="no">cp -av /data_old/* /data/</span>
+            <span class="no">echo &quot;migration finished&quot;</span>
+            <span class="no">ls -la /data/</span>
+            <span class="no">sleep 300</span>
+          <span class="nt">volumeMounts</span><span class="p">:</span>
+          <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-data</span>
+            <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/data_old</span>
+          <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-pvc</span>
+            <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/data</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-data</span>
+        <span class="nt">hostPath</span><span class="p">:</span>
+          <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;old-path-on-host&gt;</span>
+          <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Directory</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">app-pvc</span>
+        <span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+          <span class="nt">claimName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;new-pvc-name&gt;</span>
+</code></pre>
+    </div>
+</details><p>This job uses the original app's container and environment, which (for simpler cases) could make sure that the files in the newly mounted PVC has correct permissions and ownerships for the original app to work. Some more complicated cases do exist, e.g. actual app may run as a different user/group than the <code>sh</code> user, or the app relies on some hidden files (with filenames starts with <code>.</code>) which might be left out by the <code>cp</code> command. Those cases may need to be handled manually.</p>
+<h3 id="nfs_volumes">NFS Volumes&nbsp;<a class="hidden" tabindex="-1" href="#nfs_volumes" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>Another way of using NFS in k8s is directly declaring an NFS server/path as a volume. something like this:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="c1"># in k8s config of some deployment...</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="c1"># ...</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="c1"># ...</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="c1"># ...</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-volume</span>
+          <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/mnt/foo/bar</span>
+          <span class="nt">readOnly</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span> <span class="c1"># if needed</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-volume</span>
+        <span class="nt">nfs</span><span class="p">:</span>
+          <span class="nt">server</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;server-ip&gt;</span>
+          <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;nfs-exported-path&gt;</span>
+          <span class="nt">readOnly</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span> <span class="c1"># if needed</span>
+</code></pre>
+    </div><p>Different from NFS-backed PVC where NFS connection is made by the <code>nfs-provisioner</code> when you create the PVC, here the connection is made when the deployment is, well deployed. It should work as long as the NFS configuration is correct and the target path does exist. As you can tell, this approach allows you to mount any existing data onto k8s jobs with great flexibility, which is particularly useful when you need to access data from external source (e.g. photos, videos managed by other softwares).</p>
+<h3 id="monitoring">Monitoring&nbsp;<a class="hidden" tabindex="-1" href="#monitoring" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>Since I already have the prometheus-grafana setup<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup>, might as well try to monitor the usage for my app data.</p>
+<p>A common caveat to note is that <a href="https://hirohirolab.com/en/blog/2024/09/nfs_storage_capacity_does_not_work_in_k8s/">k8s is not actually enforcing the space limit for NFS-based PVCs</a>. The capacity you specify in a PVC is more of a &quot;request&quot; than a hard limit, mostly for scheduling/matching purpose. The actual enforcement has to be done through the underlying filesystem (e.g. Quota-enabled NFS, block storage, CSI Drivers with Quota Support).</p>
+<p>This also affects observability of space usage for NFS-based PVCs, where if you pull PVC metrics from kubelet, you'll see the same usage stats for all PVCs, which is actually reporting the underlying FS stats. To actually monitor that you'll need something like a node-exporter, and get the metrics by running <code>du</code> on each of the PVC folders.</p>
+<p>I wrote a simple Python script (with the help from Claude) that can periodically check all sub directories under the NFS PVC base dir, and emit prometheus metrics as a metrics server. Note that his only works for the directory structure specified in <a href="#nfs_provisioner">#nfs_provisioner</a></p>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;nfs-pvc-exporter.py</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="python"><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">from</span> <span class="nn">prometheus_client</span> <span class="kn">import</span> <span class="n">start_http_server</span><span class="p">,</span> <span class="n">Gauge</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+
+<span class="c1"># Prometheus metrics</span>
+<span class="n">pvc_used_bytes</span> <span class="o">=</span> <span class="n">Gauge</span><span class="p">(</span><span class="s1">&#39;nfs_pvc_used_bytes&#39;</span><span class="p">,</span> <span class="s1">&#39;Used bytes per PVC&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;namespace&#39;</span><span class="p">,</span> <span class="s1">&#39;pvc_name&#39;</span><span class="p">])</span>
+
+<span class="c1"># Configuration</span>
+<span class="n">SCRAPE_INTERVAL</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRAPE_INTERVAL&#39;</span><span class="p">,</span> <span class="s1">&#39;60&#39;</span><span class="p">))</span>
+<span class="n">NFS_BASE_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;NFS_BASE_PATH&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_directory_usage</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get usage in bytes</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;du&#39;</span><span class="p">,</span> <span class="s1">&#39;-sb&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">usage_bytes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">usage_bytes</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error getting usage for </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+<span class="k">def</span> <span class="nf">find_pvc_volumes</span><span class="p">():</span>
+    <span class="n">volumes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">NFS_BASE_PATH</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Kubelet pods path not found: </span><span class="si">{</span><span class="n">NFS_BASE_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">volumes</span>
+    
+    <span class="c1"># Iterate through pod directories</span>
+    <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">NFS_BASE_PATH</span><span class="p">):</span>
+        <span class="n">ns_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NFS_BASE_PATH</span><span class="p">,</span> <span class="n">ns</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">ns_path</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">volume</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ns_path</span><span class="p">):</span>
+            <span class="n">volume_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ns_path</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">volume_path</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="n">volume_path</span><span class="p">,</span>
+                <span class="s1">&#39;namespace&#39;</span><span class="p">:</span> <span class="n">ns</span><span class="p">,</span>
+                <span class="s1">&#39;pvc_name&#39;</span><span class="p">:</span> <span class="n">volume</span><span class="p">,</span>
+            <span class="p">})</span>
+    <span class="k">return</span> <span class="n">volumes</span>
+
+<span class="k">def</span> <span class="nf">collect_metrics</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collecting metrics at </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="n">volumes</span> <span class="o">=</span> <span class="n">find_pvc_volumes</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span><span class="si">}</span><span class="s2"> PVC volumes&quot;</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="n">volumes</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">vol</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="n">vol</span><span class="p">[</span><span class="s1">&#39;namespace&#39;</span><span class="p">]</span>
+        <span class="n">pvc_name</span> <span class="o">=</span> <span class="n">vol</span><span class="p">[</span><span class="s1">&#39;pvc_name&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Checking </span><span class="si">{</span><span class="n">namespace</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">pvc_name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">used</span> <span class="o">=</span> <span class="n">get_directory_usage</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">used</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pvc_used_bytes</span><span class="o">.</span><span class="n">labels</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="n">namespace</span><span class="p">,</span> <span class="n">pvc_name</span><span class="o">=</span><span class="n">pvc_name</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">used</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Used: </span><span class="si">{</span><span class="n">used</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Start Prometheus metrics server</span>
+    <span class="n">port</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;METRICS_PORT&#39;</span><span class="p">,</span> <span class="s1">&#39;9101&#39;</span><span class="p">))</span>
+    <span class="n">start_http_server</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metrics server started on port </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scraping every </span><span class="si">{</span><span class="n">SCRAPE_INTERVAL</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Collect metrics periodically</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">collect_metrics</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error collecting metrics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">SCRAPE_INTERVAL</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</code></pre>
+    </div>
+</details><p>This script should be deployed with a k8s deployment and corresponding service. Then in prometheus config add a job in the scrape configs:</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="c1"># ...</span>
+<span class="nt">scrape_configs</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">job_name</span><span class="p">:</span> <span class="s">&#39;nfs-pvc-exporter&#39;</span>
+    <span class="nt">kubernetes_sd_configs</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">role</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">pod</span>
+        <span class="nt">namespaces</span><span class="p">:</span>
+          <span class="nt">names</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">monitoring</span>
+    <span class="nt">relabel_configs</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">source_labels</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="nv">__meta_kubernetes_pod_label_app</span><span class="p p-Indicator">]</span>
+        <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">keep</span>
+        <span class="nt">regex</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nfs-pvc-exporter</span>
+</code></pre>
+    </div><p>Then the metric should be available in prometheus and grafana with name <code>nfs_pvc_used_bytes</code>, and you can build dashboards from it.
+<p style="text-align: center"><img class="my-resp-img" src="/static/image/pvc_dashboard.png" alt="pvc_dashboard" style="width: 90%"/><br><em class="text-gray">Dashboard with simple usage report</em></p></p>
+<p>With some pretty obvious clues from the dashboard, you might have guessed that we'll talk about how to use this new storage paradigm to seamlessly import and manage photo and video content with self-hosted <a href="https://immich.app/">Immich</a> service. So until next time, happy hacking :)</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>Because I'm too poor to afford another <a href="https://turingpi.com/product/turing-rk1/?attribute_ram=16+GB">RK1</a><a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>Probably because I'm too lazy to look into it.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Just realized that I didn't blog about my monitoring stack, which I have been using for over a year 😂<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+
+<i><a class="text-secondary" style="font-size: .7rem;"
+        href="https://github.com/KevinXuxuxu/blog/blob/main/posts/building_private_cloud_nfs_done_right.md">Markdown source</a></i>
+
+<script id="giscus" src="https://giscus.app/client.js" data-repo="KevinXuxuxu/KevinXuxuxu.github.io"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkzNjU0MjE0Ng==" data-category="Announcements"
+    data-category-id="DIC_kwDOAi2Wws4Cna5N" data-mapping="title" data-strict="0" data-reactions-enabled="1"
+    data-emit-metadata="0" data-input-position="bottom" data-theme="catppuccin_latte" data-lang="en" data-loading="lazy"
+    crossorigin="anonymous" async>
+    </script>
+
+            </div>
+            <div class="column col-sm-12 col-md-2 col-4">
+                
+                
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
