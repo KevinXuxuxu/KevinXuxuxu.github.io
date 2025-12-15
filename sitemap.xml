@@ -150,12 +150,12 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>https://site.fzxu.me/blog/category/tech/</loc>
+        <loc>https://site.fzxu.me/blog/category/system/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
     <url>
-        <loc>https://site.fzxu.me/blog/category/system/</loc>
+        <loc>https://site.fzxu.me/blog/category/tech/</loc>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
     </url>
