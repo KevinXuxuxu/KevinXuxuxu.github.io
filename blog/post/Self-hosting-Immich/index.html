@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="fzxu">
+    <meta name="robots" content="index, follow">
+    
+<meta name="keywords" content="Private Cloud, NFS, Storage, Immich, tech">
+<link rel="canonical" href="https://site.fzxu.me/blog/post/Self-hosting-Immich/">
+
+<!-- Open Graph tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="Self-hosting Immich">
+<meta property="og:url" content="https://site.fzxu.me/blog/post/Self-hosting-Immich/">
+<meta property="og:site_name" content="fzxu's Blog">
+
+<meta property="og:image" content="https://site.fzxu.me/static/image/immich_map.png">
+
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="fzxu">
+<meta property="article:published_time" content="2026-02-28 16:33:11">
+<meta property="article:section" content="tech">
+
+<meta property="article:tag" content="Private Cloud">
+
+<meta property="article:tag" content="NFS">
+
+<meta property="article:tag" content="Storage">
+
+<meta property="article:tag" content="Immich">
+
+
+<!-- Twitter Card tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Self-hosting Immich">
+
+<meta name="twitter:image" content="https://site.fzxu.me/static/image/immich_map.png">
+
+
+
+    <link id="spectre" rel="stylesheet" href="/static/style/spectre.css">
+    <link rel="stylesheet" href="/static/style/pygments_style.css">
+    <link rel="stylesheet" href="/static/style/custom.css">
+    <link rel="stylesheet" href="/static/style/collapsible_code_block.css">
+    <script>
+        window.addEventListener('load', function () { window.loaded = true; });
+    </script>
+
+    <script src="/static/script/color_theme.js"></script>
+    <script>
+        init_color_theme();
+
+        // Manual responsive for blog images
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.innerWidth < 768) {
+                const elements = document.getElementsByClassName("my-resp-img");
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].style.width = "90%";
+                }
+            }
+        });
+    </script>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+<title>Self-hosting Immich - fzxu's Blog</title>
+
+<style>
+    /* Initially hide the element */
+    .hidden {
+        display: none;
+    }
+
+    /* Show the element when it's hovered over */
+    h3:hover .hidden {
+        display: inline-block;
+    }
+
+    h4:hover .hidden {
+        display: inline-block;
+    }
+
+    h5:hover .hidden {
+        display: inline-block;
+    }
+</style>
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon_io/site.webmanifest">
+    
+    
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Self-hosting Immich",
+  "author": {
+    "@type": "Person",
+    "name": "fzxu",
+    "url": "https://site.fzxu.me/"
+  },
+  "datePublished": "2026-02-28 16:33:11",
+  "dateModified": "2026-02-28 16:33:11",
+  "url": "https://site.fzxu.me/blog/post/Self-hosting-Immich/",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://site.fzxu.me/blog/post/Self-hosting-Immich/"
+  },
+  
+  "image": "https://site.fzxu.me/static/image/immich_map.png",
+  
+  "publisher": {
+    "@type": "Person",
+    "name": "fzxu",
+    "url": "https://site.fzxu.me/"
+  },
+  "keywords": "Private Cloud, NFS, Storage, Immich",
+  "articleSection": "tech",
+  "description": "Self-hosting Immich - A technical blog post by fzxu covering tech topics."
+}
+</script>
+
+</head>
+
+<body>
+    <div class="main container grid-lg">
+        <header class="navbar" style="margin-bottom: 2.5em;">
+            <section class="navbar-section">
+            </section>
+            <section class="navbar-section">
+                <label id="color-switch" class="form-switch">
+                    <input id="theme-checkbox" type="checkbox" onclick="switch_color_theme();" disabled>
+                    <i class="form-icon"></i> <span id="moon">⏳</span>
+                </label>
+                <a href="https://github.com/KevinXuxuxu"><svg height="1.1em" width="1.1em" viewBox="0 0 32 32"
+                        class="nav-icon" xml:space="preserve">
+                        <title>Github</title>
+                        <path clip-rule="evenodd"
+                            d="M16.003,0C7.17,0,0.008,7.162,0.008,15.997  c0,7.067,4.582,13.063,10.94,15.179c0.8,0.146,1.052-0.328,1.052-0.752c0-0.38,0.008-1.442,0-2.777  c-4.449,0.967-5.371-2.107-5.371-2.107c-0.727-1.848-1.775-2.34-1.775-2.34c-1.452-0.992,0.109-0.973,0.109-0.973  c1.605,0.113,2.451,1.649,2.451,1.649c1.427,2.443,3.743,1.737,4.654,1.329c0.146-1.034,0.56-1.739,1.017-2.139  c-3.552-0.404-7.286-1.776-7.286-7.906c0-1.747,0.623-3.174,1.646-4.292C7.28,10.464,6.73,8.837,7.602,6.634  c0,0,1.343-0.43,4.398,1.641c1.276-0.355,2.645-0.532,4.005-0.538c1.359,0.006,2.727,0.183,4.005,0.538  c3.055-2.07,4.396-1.641,4.396-1.641c0.872,2.203,0.323,3.83,0.159,4.234c1.023,1.118,1.644,2.545,1.644,4.292  c0,6.146-3.74,7.498-7.304,7.893C19.479,23.548,20,24.508,20,26c0,2,0,3.902,0,4.428c0,0.428,0.258,0.901,1.07,0.746  C27.422,29.055,32,23.062,32,15.997C32,7.162,24.838,0,16.003,0z"
+                            fill="#181616" fill-rule="evenodd" />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                        <g />
+                    </svg></a>
+                <a href="/feed.xml"><svg height="1.1em" width="1.1em" viewBox="0 0 20 22" xml:space="preserve"
+                        class="nav-icon">
+                        <title>RSS feed</title>
+                        <path
+                            d="M6.002,15.999C4.895,15.999,3.998,16.896,4,18c0,1.104,0.896,2.001,2.002,1.999C7.105,20.001,8.002,19.105,8,18  C8.002,16.893,7.105,15.997,6.002,15.999z" />
+                        <path
+                            d="M6,4C4.896,4,4,4.896,4,6s0.896,2,2,2c5.514,0,10,4.486,10,10c0,1.104,0.896,2,2,2s2-0.896,2-2C20,10.28,13.72,4,6,4z" />
+                        <path
+                            d="M6,10c-1.104,0-2,0.896-2,2s0.896,2,2,2c2.205,0,4,1.794,4,4c0,1.104,0.896,2,2,2s2-0.896,2-2C14,13.589,10.411,10,6,10z" />
+                    </svg></a>
+            </section>
+        </header>
+        <header class="column col-sm-12 col-md-10 col-8">
+            
+<figure class="avatar avatar-sm">
+    <img src="/static/favicon_io/android-chrome-192x192.png" alt="avatar">
+</figure>&nbsp;
+<a href="/">fzxu's Blog</a>
+
+<div style="float: right;"> &nbsp; </div>
+
+<a href="/blog/post/building_private_cloud_nfs_done_right/" style="float: right;">◀ prev</a>
+
+<a class="unstyled-link" href="https://site.fzxu.me/blog/post/Self-hosting-Immich">
+    <h1 class="heading-index">Self-hosting Immich
+        
+    </h1>
+</a>
+
+<p class="text-gray">
+    <small>2026-02-28 16:33:11</small>
+    <span class="chip bg-secondary"><a href="/blog/category/tech/" class="text-primary">tech</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Private Cloud/" class="text-dark">Private Cloud</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/NFS/" class="text-dark">NFS</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Storage/" class="text-dark">Storage</a></span>
+    
+    <span class="chip bg-gray"><a href="/blog/tag/Immich/" class="text-dark">Immich</a></span>
+    
+</p>
+
+        </header>
+
+        <main class="content columns">
+            <div class="column col-sm-12 col-md-10 col-8">
+                
+
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/HK_1.jpg" alt="HK_1" style="width: 75%"/><br><em class="text-gray">(Unrelated) Photography Practice in Mong Kok, Hong Kong</em></p></p>
+<p>For the past half year I have explored and deployed over 10 different self-host services, among which the most engaged and most useful one has to be <a href="https://immich.app/">Immich</a> the image/video management solution. I have already running 2 instances in different locations, and I do think everyone should try and host it for themselves.</p>
+<p>In this blog post we'll cover the composition of the Immich software, my personal deployment strategy, and some potential caveats. Let's dive right in :)</p>
+<h3 id="architecture">Architecture&nbsp;<a class="hidden" tabindex="-1" href="#architecture" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+
+    <div class="highlight">
+        <pre class="code" data-lang="ascii"><span></span><code style="line-height: 1;">(Made with asciiflow.com)
+
+                      Access through                                  
+                           2283                                        
+                             │                                         
+                  Manage     │          ML tasks                       
+ ┌─────────────┐  original ┌─▼──────┐  (Face recognition ┌────────────┐
+ │ File System │  files    │ Immich │   OCR, etc.)       │   Immich   │
+ │   (NFS)     ◄───────────► Server ◄────────────────────► ML Service │
+ └─────────────┘           └───▲────┘                    └────────────┘
+                               │                                       
+                               │                                       
+                  Job queuing  │  Persistent                           
+                    websocket  │  application data   
+            ┌───────┐          │            ┌────────────┐             
+            │ Redis ◄──────────┴────────────► PostgreSQL │             
+            └───────┘                       └────────────┘
+</code></pre>
+    </div><p>As shown in this (beautifully drawn) ASCII diagram, the whole Immich service consists of 4 main parts besides the underlying file system:</p>
+<ul>
+<li>The core Immich server, center of the entire system. Talks with all other parts, manages original image/video files and host web/API services for web/mobile clients to access.</li>
+<li>Immich ML service is a standalone API service that host and serve useful CV models and handles such tasks, e.g. duplication detection, face recognition, OCR etc. It comes with <a href="https://docs.immich.app/features/ml-hardware-acceleration">hardware-accelerated ML</a> that could take good advantage of your available chips.</li>
+<li>PostgreSQL database for all the transactional data management including metadata, different types of indexing, image/face embedding and so on.</li>
+<li>Redis for managing job queue for image processing tasks and websocket connections between different parts of the system. It's entirely operational focused and doesn't do any traditional caching work in Immich.</li>
+</ul>
+<h3 id="deployment_with_k8s">Deployment with k8s&nbsp;<a class="hidden" tabindex="-1" href="#deployment_with_k8s" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>Although Immich official doc does have <a href="https://docs.immich.app/install/kubernetes">a page for installing on k8s</a> but it uses Helm chart and I'm not really a Helm person. Instead I went for the recommended <a href="https://docs.immich.app/install/docker-compose">Docker Compose</a> and asked Claude to convert it to corresponding k8s yaml configs, and make specific corrections and tuning on that.</p>
+<h4 id="immich_server">Immich Server&nbsp;<a class="hidden" tabindex="-1" href="#immich_server" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;Immich k8s deployment and service</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-server</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-server</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-server</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-server</span>
+        <span class="c1"># Use latest stable version here</span>
+        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ghcr.io/immich-app/immich-server:v2.3.1</span>
+        <span class="nt">envFrom</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">configMapRef</span><span class="p">:</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-config</span>
+        <span class="p p-Indicator">-</span> <span class="nt">secretRef</span><span class="p">:</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-secrets</span>
+        <span class="nt">ports</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">containerPort</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2283</span>
+        <span class="nt">volumeMounts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">upload-data</span>
+          <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/data</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nas-photos</span>
+          <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/mnt/nas/photos</span>
+          <span class="nt">readOnly</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">resources</span><span class="p">:</span>
+          <span class="nt">limits</span><span class="p">:</span>
+            <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;8Gi&quot;</span>
+          <span class="nt">requests</span><span class="p">:</span>
+            <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;4Gi&quot;</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">upload-data</span>
+        <span class="nt">nfs</span><span class="p">:</span>
+          <span class="nt">server</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;NAS-IP&gt;</span>
+          <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/path/to/media</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">nas-photos</span>
+        <span class="nt">nfs</span><span class="p">:</span>
+          <span class="nt">server</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;NAS-IP&gt;</span>
+          <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/path/to/external</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-server</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-server</span>
+  <span class="nt">ports</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2283</span>
+</code></pre>
+    </div>
+</details><p>A few things to notice about this k8s deployment:</p>
+<p>Configmap is needed for connecting database, redis and ML service. For a complete list of available env variables, check <a href="https://docs.immich.app/install/environment-variables">here</a>.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ConfigMap</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-config</span>
+<span class="nt">data</span><span class="p">:</span>
+  <span class="nt">DB_HOSTNAME</span><span class="p">:</span> <span class="s">&quot;pg&quot;</span>  <span class="c1"># Replace with your PostgreSQL host</span>
+  <span class="nt">DB_USERNAME</span><span class="p">:</span> <span class="s">&quot;immich_user&quot;</span>
+  <span class="nt">DB_DATABASE_NAME</span><span class="p">:</span> <span class="s">&quot;immich&quot;</span>
+  <span class="nt">DB_PORT</span><span class="p">:</span> <span class="s">&quot;5432&quot;</span>
+  <span class="nt">REDIS_PORT</span><span class="p">:</span> <span class="s">&quot;6379&quot;</span>
+  <span class="nt">REDIS_HOSTNAME</span><span class="p">:</span> <span class="s">&quot;redis&quot;</span>
+  <span class="nt">IMMICH_HOST</span><span class="p">:</span> <span class="s">&quot;0.0.0.0&quot;</span>
+</code></pre>
+    </div><p>Opaque k8s secret for pg password.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-secrets</span>
+<span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Opaque</span>
+<span class="nt">stringData</span><span class="p">:</span>
+  <span class="nt">DB_PASSWORD</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">&lt;fill in&gt;</span>
+</code></pre>
+    </div><p>Since I'm picking up photography and already importing and managing my catalog with Lightroom (mounted from NAS) and I don't intend to change that, the file storage is managed in a split way: mount my photography catalog into Immich server as an <a href="https://docs.immich.app/guides/external-library">External Library</a> (can be later added by the mounted path e.g. <code>/mnt/nas/photos</code>), and allocate a separate directory in NAS to mount as Immich-managed upload target (e.g. <code>/data</code>).<sup class="footnote-ref" id="fnref-1"><a href="#fn-1">1</a></sup> Remember to set correct FS permission as you desire.</p>
+<p>The Immich server is generally not too resource intensive, but try to allocate some Gs of RAM for it to work smoothly if conditions allow. My deployment consumes a constant 4G of RAM according to my monitoring, and it fluctuates when there's active workload (image indexing/processing after upload).</p>
+<h4 id="immich_ml_service">Immich ML Service&nbsp;<a class="hidden" tabindex="-1" href="#immich_ml_service" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;Immich machine learning k8s deployment and service</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-machine-learning</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-machine-learning</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-machine-learning</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-machine-learning</span>
+        <span class="c1"># Use latest stable version here</span>
+        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ghcr.io/immich-app/immich-machine-learning:v2.3.1</span>
+        <span class="nt">volumeMounts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">model-cache</span>
+          <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/cache</span>
+        <span class="nt">resources</span><span class="p">:</span>
+          <span class="nt">limits</span><span class="p">:</span>
+            <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;4Gi&quot;</span>
+          <span class="nt">requests</span><span class="p">:</span>
+            <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;1Gi&quot;</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">model-cache</span>
+        <span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+          <span class="nt">claimName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-model-cache-pvc</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-machine-learning</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-machine-learning</span>
+  <span class="nt">ports</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">3003</span>
+</code></pre>
+    </div>
+</details><p>Immich machine learning server runs in a similar fashion. For the resource requirement it highly depend on the demand. I'm putting 1G require/4G limit so that when models are loaded it won't OOM and kill the pod, but from my monitoring it rarely exceeds 2G RAM.</p>
+<p>I'm using a NFS backed PVC <sup class="footnote-ref" id="fnref-2"><a href="#fn-2">2</a></sup> to mount as cache target for the downloaded models. For the daily use it automatically downloads<sup class="footnote-ref" id="fnref-3"><a href="#fn-3">3</a></sup> the following models and they take less than 1G disk space in total.</p>
+<ul>
+<li><a href="https://openai.com/index/clip/">CLIP</a> by the model <a href="https://huggingface.co/openai/clip-vit-base-patch32">openai/clip-vit-base-patch32</a>, introduced by OpenAI to get comprehensive connection between image and natural language, used for image understanding.</li>
+<li><a href="https://huggingface.co/immich-app/buffalo_l">buffalo_l</a> model by <a href="https://github.com/deepinsight/insightface/tree/master">insightface</a> is used for face detection and recognition.</li>
+<li><a href="https://huggingface.co/PaddlePaddle/PP-OCRv5_mobile_rec">PP-OCRv5_mobile</a> detection and recognition models by <a href="https://www.paddlepaddle.org.cn/en">PaddlePaddle</a> is used for OCR.</li>
+</ul>
+<h4 id="postgres">Postgres&nbsp;<a class="hidden" tabindex="-1" href="#postgres" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Immich persists data in Postgres, which includes information about access and authorization, users, albums, asset, sharing settings, etc, and it requires some extra extensions on top of vanilla postgres database, namely <code>pgvector</code> and <code>VectorChord</code> as specified in <a href="https://docs.immich.app/administration/postgres-standalone#prerequisites">prerequisites</a>.</p>
+<p>If you don't have a pre-existing postgres deployment, just follow the official docker-compose and use Immich's official image which comes with all the dependencies, and you can tweak around resource limits and how you want to store data for persistence.</p>
+<details class="code-block">
+    <summary class="code-summary">&nbsp;&nbsp;Immich postgres deployment and service</summary>
+        
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-postgres</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-postgres</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-postgres</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0</span>
+        <span class="nt">envFrom</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">secretRef</span><span class="p">:</span>
+            <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-secrets</span>
+        <span class="nt">env</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">POSTGRES_INITDB_ARGS</span>
+          <span class="nt">value</span><span class="p">:</span> <span class="s">&quot;--data-checksums&quot;</span>
+        <span class="nt">volumeMounts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">pg-data</span>
+          <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/var/lib/postgresql/data</span>
+        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dshm</span>
+          <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/dev/shm</span>
+      <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">pg-data</span>
+        <span class="nt">persistentVolumeClaim</span><span class="p">:</span>
+          <span class="nt">claimName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-postgres-pvc</span>
+      <span class="c1"># Workaround for the docker-compose &#39;shm_size&#39; requirement</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dshm</span>
+        <span class="nt">emptyDir</span><span class="p">:</span>
+          <span class="nt">medium</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Memory</span>
+          <span class="nt">sizeLimit</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">128Mi</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-postgres</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">immich-postgres</span>
+  <span class="nt">ports</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5432</span>
+</code></pre>
+    </div>
+</details><p>While since I already run a standalone postgres instance <sup class="footnote-ref" id="fnref-4"><a href="#fn-4">4</a></sup>, I had to write a Dockerfile and build a custom pg image with the required dependency, and also manually create the target database. Immich server will trigger the migration procedure if it sees an empty database.</p>
+<h4 id="redis">Redis&nbsp;<a class="hidden" tabindex="-1" href="#redis" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h4>
+<p>Actually <a href="https://valkey.io/">Valkey</a><sup class="footnote-ref" id="fnref-5"><a href="#fn-5">5</a></sup> and it should be pretty straightforward.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="yaml"><span></span><code><span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">redis</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+      <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">redis</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">metadata</span><span class="p">:</span>
+      <span class="nt">labels</span><span class="p">:</span>
+        <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">redis</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">containers</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">redis</span>
+        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">valkey/valkey:8.0</span>
+        <span class="c1"># Add liveness and readiness probe if you want</span>
+<span class="nn">---</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Service</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">redis</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">redis</span>
+  <span class="nt">ports</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">port</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">6379</span>
+</code></pre>
+    </div><p>When I was setting it up I had to manually create a user and key space or something. But since Immich just use it as a temporary job queue none of that should be necessary.</p>
+<h3 id="clients">Clients&nbsp;<a class="hidden" tabindex="-1" href="#clients" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>See <a href="https://docs.immich.app/developer/architecture#clients">official doc</a>, there's just not too much to say about them. Web or mobil app are all readily available and well polished.</p>
+<h3 id="connectivity">Connectivity&nbsp;<a class="hidden" tabindex="-1" href="#connectivity" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p>As of now I have settled on 2 major ways of accessing internal services from public Internet. Both can work with Immich and has their respective pros and cons. <a href="https://docs.immich.app/guides/remote-access">Immich official doc</a> also covers a few general approaches, but I'll focus on the ones I have tested around.</p>
+
+    <div class="highlight">
+        <pre class="code" data-lang="ascii"><span></span><code style="line-height: 1;">(Made with asciiflow.com)
+
+     Access                                                       
+immich.example.com                                                
+        │                                                         
+┌───────┼────────┐                                                
+│       ▼        │    ┌──────────────────────────────────────────┐
+│   Cloudflare   │    │  Internal systems                        │
+│     Access     │    │                                          │
+│       │        │    │                     service              │
+│       ▼        │    │ ┌─────────────┐   cluster IP  ┌────────┐ │
+│   Cloudflare ──┼────│─► cloudflared ├───────────────► Immich │ │
+│     Tunnel     │    │ └─────────────┘               │ server │ │
+│                │    │                               └────────┘ │
+└────────────────┘    └──────────────────────────────────────────┘
+</code></pre>
+    </div><p>The first approach is similar to what's mentioned in <a href="/blog/post/building_private_cloud_network_security_with_tunneling/">Building Private Cloud: Network Security with Tunneling</a>, using Cloudflare Tunnel to serve public services without exposing private IP to the Internet. Although there's a few caveats:</p>
+<ul>
+<li>Cloudflare tunnel only support HTTP(S) protocols so the usage is a bit limited, e.g. you cannot host a public PostgreSQL database or whatever.</li>
+<li>From my experience there's a cap on network packet size going through the tunnel. This would be annoying if you want to upload/backup your medias from anywhere. Photos are generally fine but videos will very likely fail.</li>
+<li>Although your private IP is safe, it still exposes your self-host service to the public, where you're just trusting the out-of-the-box authentication system and the security of the service itself. If you don't trust that, I recently tried <a href="https://www.cloudflare.com/sase/products/access/">Cloudflare Access</a> which is also a free product that can work with Tunnel to add an extra &quot;all-over&quot; authentication protection before your internal service is accessed. It support various OAuth providers, but the default email verification code method is easy to use and requires no extra dependency.<sup class="footnote-ref" id="fnref-6"><a href="#fn-6">6</a></sup></li>
+</ul>
+
+    <div class="highlight">
+        <pre class="code" data-lang="ascii"><span></span><code style="line-height: 1;">(Made with asciiflow.com)
+
+       Access                                         
+  immich.local.example.com                            
+            │                                         
+┌───────────┼────────────────────────────────────────┐
+│ Tailnet   │                                        │
+│           │                                        │
+│           │        ┌──────────────┐    ┌────────┐  │
+│  Resolve  ├────────►   Traefik    ├────► Immich │  │
+│    DNS    │        │ IngressRoute │    │ Server │  │
+│       ┌───▼────┐   └──────────────┘    └────────┘  │
+│       │ Pihole │                                   │
+│       └────────┘                                   │
+└────────────────────────────────────────────────────┘
+</code></pre>
+    </div><p>The other way is to access all internal systems through Tailscale virtual subnet (<a href="https://tailscale.com/docs/concepts/tailnet">Tailnet</a>). In the simplest setup, all nodes within the Tailnet are able to access each other through tailscale's network tier. It's basically a simpler and more loose kind of VPN, and we're just offloading the authentication logic to Tailscale.</p>
+<p>This method is most suitable if the internal service only needs to be accessed by a very small group of people, or even just the admin, because giving someone access to your entire Tailnet is more risky than the previous approach. I have a <a href="https://github.com/pi-hole/pi-hole">Pihole</a> which is configured as the default DNS resolver for all requests within the Tailnet, and <code>immich.local.example.com</code> is resolved to the target node IP (in my scenario it's the k8s master node, and then handled by Traefik loadbalancer) for further routing.</p>
+<p>This is actually my default way to do any remote management or developing for anything in my entire system so highly recommended.</p>
+<h3 id="conclusion">Conclusion&nbsp;<a class="hidden" tabindex="-1" href="#conclusion" style="font-size: .8rem"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 8 8"><path fill="currentColor" d="M5.88.03a1.9 1.9 0 0 0-.53.09c-.27.1-.53.25-.75.47a.5.5 0 1 0 .69.69c.11-.11.24-.17.38-.22c.35-.12.78-.07 1.06.22c.39.39.39 1.04 0 1.44l-1.5 1.5c-.44.44-.8.48-1.06.47c-.26-.01-.41-.13-.41-.13a.5.5 0 1 0-.5.88s.34.22.84.25c.5.03 1.2-.16 1.81-.78l1.5-1.5A1.98 1.98 0 0 0 6.44.07C6.26.03 6.06.03 5.88.04zm-2 2.31c-.5-.02-1.19.15-1.78.75L.6 4.59a1.98 1.98 0 0 0 0 2.81c.56.56 1.36.72 2.06.47c.27-.1.53-.25.75-.47a.5.5 0 1 0-.69-.69c-.11.11-.24.17-.38.22c-.35.12-.78.07-1.06-.22c-.39-.39-.39-1.04 0-1.44l1.5-1.5c.4-.4.75-.45 1.03-.44c.28.01.47.09.47.09a.5.5 0 1 0 .44-.88s-.34-.2-.84-.22z"/></svg></a></h3>
+<p><p style="text-align: center"><img class="my-resp-img" src="/static/image/immich_web.png" alt="immich_web" style="width: 100%"/><br><em class="text-gray">Using Immich to manage my photography work</em></p></p>
+<p>Immich is by far the most complicated self-host service I've ever deployed, so I think it's worth to blog about. I'm still trying to get better understanding about how multiple users work in Immich regarding media visibility, sharing and so on. But I'm now quite happy with it, and don't have to worry about mobil phone storage capacity, or having to trust my private media with <a href="https://www.google.com/intl/en_us/photos/about/">Google</a> or <a href="https://www.icloud.com/">Apple</a> anymore.</p>
+<p>Until next time, happy hacking!</p>
+<section class="footnotes">
+<ol>
+<li id="fn-1"><p>See <a href="/blog/post/building_private_cloud_nfs_done_right">previous post</a> about how to setup NFS based k8s volumes.<a href="#fnref-1" class="footnote">&#8617;</a></p></li>
+<li id="fn-2"><p>According to my storage solution, this PVC is stored on my cluster NVME and served by NFS provisioner, also see <a href="/blog/post/building_private_cloud_nfs_done_right">previous post</a> for how to do that.<a href="#fnref-2" class="footnote">&#8617;</a></p></li>
+<li id="fn-3"><p>Note that the auto-download only works outside of mainland-China since model registries like huggingface is hard to access or blocked entirely. I had to download the models from separate channels when I deploy Immich for some friends in China.<a href="#fnref-3" class="footnote">&#8617;</a></p></li>
+<li id="fn-4"><p>I should probably blog about it separately but it's already used in so many apps e.g. FreshRSS, gitea, my vibe-coded notes system...<a href="#fnref-4" class="footnote">&#8617;</a></p></li>
+<li id="fn-5"><p>Apparently Valkey is the high-performance, truly open-source successor to Redis and can serve as a drop-in replacement.<a href="#fnref-5" class="footnote">&#8617;</a></p></li>
+<li id="fn-6"><p>Accessing Immich from mobil app with Cloudflare Access on could be a bit troublesome. Check <a href="https://github.com/immich-app/immich/discussions/8299">this Github issue</a> to do OAuth on mobil phones. I think there's another way to bypass Access when you have particular key in the request header (can be configured in Immich app), but I couldn't find a source link uwu<a href="#fnref-6" class="footnote">&#8617;</a></p></li>
+</ol>
+</section>
+
+
+<i><a class="text-secondary" style="font-size: .7rem;"
+        href="https://github.com/KevinXuxuxu/blog/blob/main/posts/Self-hosting-Immich.md">Markdown source</a></i>
+
+<script id="giscus" src="https://giscus.app/client.js" data-repo="KevinXuxuxu/KevinXuxuxu.github.io"
+    data-repo-id="MDEwOlJlcG9zaXRvcnkzNjU0MjE0Ng==" data-category="Announcements"
+    data-category-id="DIC_kwDOAi2Wws4Cna5N" data-mapping="title" data-strict="0" data-reactions-enabled="1"
+    data-emit-metadata="0" data-input-position="bottom" data-theme="catppuccin_latte" data-lang="en" data-loading="lazy"
+    crossorigin="anonymous" async>
+    </script>
+
+            </div>
+            <div class="column col-sm-12 col-md-2 col-4">
+                
+                
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
